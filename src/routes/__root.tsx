@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, Link } from "@tanstack/react-router";
+import { createRootRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
@@ -35,6 +35,14 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+
+  // Admin routes have their own full-screen layout — skip public chrome
+  if (isAdmin) {
+    return <Outlet />;
+  }
+
   return (
     <div>
       <Navbar />
@@ -45,4 +53,5 @@ function RootComponent() {
     </div>
   );
 }
+
 
