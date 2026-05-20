@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getPostBySlug, POSTS } from "@/data/posts";
 import { PostCard } from "@/components/blog/PostCard";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/review/$slug")({
   loader: ({ params }) => {
@@ -90,6 +91,23 @@ function RatingMeter({ rating }: { rating: number }) {
 
 function ReviewPage() {
   const post = Route.useLoaderData();
+
+  const handleAffiliateClick = (platform: "amazon" | "mercadolivre" | "shopee", url: string) => {
+    supabase
+      .from("clicks_tracking")
+      .insert({
+        post_id: post.id,
+        platform,
+        affiliate_url: url,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error("Error tracking click:", error);
+        }
+      });
+  };
+
   const related = POSTS.filter(
     (p) => p.category.id === post.category.id && p.id !== post.id
   ).slice(0, 3);
@@ -251,6 +269,7 @@ function ReviewPage() {
                         target="_blank"
                         rel="noopener noreferrer sponsored"
                         id={`buy-btn-${link.platform}-${i}`}
+                        onClick={() => handleAffiliateClick(link.platform, link.url)}
                         className={`flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg text-sm font-bold transition-colors ${platformColor[link.platform] ?? "bg-gray-800 text-white hover:bg-gray-700"}`}
                       >
                         <ExternalLink size={14} />

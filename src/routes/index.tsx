@@ -81,27 +81,82 @@ function HomePage() {
           </div>
         </section>
 
-        {/* Categorias */}
-        <section>
-          <h2 className="text-xl font-bold text-[var(--color-ink)] mb-6">
-            Navegue por categoria
+        {/* Categorias - Maximalismo Tátil 2026 */}
+        <section className="mb-14">
+          <h2 className="text-2xl font-black text-[var(--color-ink)] mb-6 tracking-tight">
+            Navegue por Categoria
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.id}
-                to="/categoria/$slug"
-                params={{ slug: cat.slug }}
-                className="group flex flex-col items-center gap-2 p-4 rounded-xl border border-[var(--color-hairline)] bg-white hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all duration-150 text-center"
-              >
-                <div className="w-10 h-10 rounded-lg bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-mute)] group-hover:text-[var(--color-primary)] transition-colors text-lg">
-                  📦
-                </div>
-                <span className="text-xs font-medium text-[var(--color-body)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">
-                  {cat.name}
-                </span>
-              </Link>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {CATEGORIES.map((cat) => {
+              const style = {
+                eletronicos: {
+                  gradient: "from-teal-400 to-emerald-600",
+                  glow: "shadow-emerald-500/10 hover:shadow-emerald-500/35",
+                  emoji: "💻",
+                },
+                "casa-jardim": {
+                  gradient: "from-amber-400 to-orange-500",
+                  glow: "shadow-orange-500/10 hover:shadow-orange-500/35",
+                  emoji: "🏡",
+                },
+                "esporte-fitness": {
+                  gradient: "from-rose-500 to-violet-600",
+                  glow: "shadow-rose-500/10 hover:shadow-rose-500/35",
+                  emoji: "💪",
+                },
+                moda: {
+                  gradient: "from-fuchsia-500 to-pink-600",
+                  glow: "shadow-pink-500/10 hover:shadow-pink-500/35",
+                  emoji: "👟",
+                },
+                beleza: {
+                  gradient: "from-cyan-400 to-blue-500",
+                  glow: "shadow-blue-500/10 hover:shadow-blue-500/35",
+                  emoji: "✨",
+                },
+                cozinha: {
+                  gradient: "from-red-500 to-amber-500",
+                  glow: "shadow-red-500/10 hover:shadow-red-500/35",
+                  emoji: "🍳",
+                },
+              }[cat.id] || {
+                gradient: "from-gray-500 to-slate-700",
+                glow: "shadow-slate-500/10 hover:shadow-slate-500/35",
+                emoji: "📦",
+              };
+
+              return (
+                <Link
+                  key={cat.id}
+                  to="/categoria/$slug"
+                  params={{ slug: cat.slug }}
+                  className={`group relative overflow-hidden flex flex-col justify-between p-5 rounded-3xl bg-gradient-to-br ${style.gradient} border border-white/10 shadow-lg ${style.glow} hover:-translate-y-2 hover:scale-[1.03] transition-all duration-300 aspect-[1.3/1]`}
+                  style={{
+                    boxShadow: "0 4px 15px -3px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.2)",
+                  }}
+                >
+                  {/* Decorative background element */}
+                  <div className="absolute -right-2 -bottom-2 text-6xl opacity-15 group-hover:scale-125 group-hover:-rotate-12 transition-transform duration-500 select-none">
+                    {style.emoji}
+                  </div>
+
+                  {/* Icon Container */}
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/15 group-hover:scale-110 transition-transform duration-300">
+                    {style.emoji}
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="z-10 mt-4">
+                    <span className="block text-xs font-black tracking-widest text-white/70 uppercase">
+                      Explorar
+                    </span>
+                    <h3 className="text-base font-black text-white leading-tight mt-0.5 drop-shadow-sm">
+                      {cat.name}
+                    </h3>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>

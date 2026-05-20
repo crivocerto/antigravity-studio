@@ -38,7 +38,7 @@ function RootComponent() {
   return (
     <div>
       <Navbar />
-      <main className="min-h-screen">
+      <main className="min-h-screen pt-28">
         <Outlet />
       </main>
       <Footer />

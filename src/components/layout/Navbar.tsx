@@ -1,13 +1,26 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
-import { Search, Menu, X, CheckCircle2 } from "lucide-react";
-import { CATEGORIES } from "@/data/posts";
+import { useState, useEffect } from "react";
+import { Search, Menu, X, CheckCircle2, ShieldAlert, LayoutDashboard } from "lucide-react";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -19,64 +32,95 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
+    <header
+      className={`fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl rounded-3xl border border-white/20 shadow-2xl transition-all duration-300 ease-out backdrop-blur-xl ${
+        scrolled
+          ? "top-3 bg-white/70 scale-95 shadow-lg border-white/10"
+          : "top-5 bg-white/90 scale-100"
+      }`}
+      style={{
+        boxShadow: scrolled
+          ? "0 4px 20px -2px rgba(13, 154, 110, 0.15), 0 2px 8px -1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
+          : "0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5)",
+      }}
+    >
+      <div className="px-6 py-3">
+        <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--color-primary)] text-white">
-              <CheckCircle2 size={18} strokeWidth={2.5} />
+          <Link to="/" className="flex items-center gap-2 shrink-0 group">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--color-primary)] text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+              <CheckCircle2 size={20} strokeWidth={2.5} />
             </div>
-            <span className="text-lg font-bold text-[var(--color-ink)] tracking-tight">
-              CrivoCerto
+            <span className="text-lg font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
+              Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>
             </span>
           </Link>
 
-          {/* Nav Desktop */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Nav Desktop - Primary Navigation Only */}
+          <nav className="hidden md:flex items-center gap-2 bg-gray-100/50 p-1 rounded-full border border-gray-200/20">
             <Link
               to="/"
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
                 isActive("/")
-                  ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                  : "text-[var(--color-body)] hover:text-[var(--color-ink)] hover:bg-gray-100"
+                  ? "bg-white text-[var(--color-primary)] shadow-sm"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
               }`}
             >
               Início
             </Link>
-            {CATEGORIES.slice(0, 4).map((cat) => (
-              <Link
-                key={cat.id}
-                to="/categoria/$slug"
-                params={{ slug: cat.slug }}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ${
-                  location.pathname === `/categoria/${cat.slug}`
-                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                    : "text-[var(--color-body)] hover:text-[var(--color-ink)] hover:bg-gray-100"
-                }`}
-              >
-                {cat.name}
-              </Link>
-            ))}
+            <Link
+              to="/como-avaliamos"
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
+                isActive("/como-avaliamos")
+                  ? "bg-white text-[var(--color-primary)] shadow-sm"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
+              }`}
+            >
+              Metodologia
+            </Link>
+            <Link
+              to="/afiliados"
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
+                isActive("/afiliados")
+                  ? "bg-white text-[var(--color-primary)] shadow-sm"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
+              }`}
+            >
+              Afiliados
+            </Link>
           </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Search toggle */}
+            {/* Search Toggle */}
             <button
               id="search-toggle-btn"
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 rounded-lg text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100 transition-colors"
+              className={`p-2 rounded-xl transition-all duration-300 ${
+                searchOpen
+                  ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60"
+              }`}
               aria-label="Buscar"
             >
               <Search size={18} />
             </button>
 
-            {/* Mobile menu toggle */}
+            {/* Admin Access Panel */}
+            <Link
+              to="/admin"
+              className="p-2 rounded-xl text-[var(--color-mute)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all duration-300"
+              title="Painel Admin"
+              aria-label="Painel Admin"
+            >
+              <LayoutDashboard size={18} />
+            </Link>
+
+            {/* Mobile Menu Toggle */}
             <button
               id="mobile-menu-btn"
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-xl text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60 transition-all duration-300"
               aria-label="Menu"
             >
               {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -84,9 +128,9 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Search bar expandida */}
+        {/* Search Expanded (inside the island) */}
         {searchOpen && (
-          <div className="pb-3 animate-slide-up">
+          <div className="mt-3 pt-3 border-t border-gray-100 animate-slide-up">
             <form onSubmit={handleSearch} className="relative">
               <Search
                 size={16}
@@ -97,9 +141,9 @@ export function Navbar() {
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar reviews, produtos..."
+                placeholder="O que você está procurando hoje?"
                 autoFocus
-                className="w-full rounded-lg border border-[var(--color-hairline)] bg-[var(--color-surface)] pl-9 pr-4 py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-stone)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+                className="w-full rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)]/80 pl-10 pr-4 py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-stone)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all duration-300"
               />
             </form>
           </div>
@@ -107,26 +151,41 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-4 border-t border-[var(--color-hairline)] pt-3 animate-slide-up">
-            <nav className="flex flex-col gap-1">
+          <div className="md:hidden mt-3 pt-3 border-t border-gray-100 animate-slide-up">
+            <nav className="flex flex-col gap-1.5 pb-2">
               <Link
                 to="/"
                 onClick={() => setMenuOpen(false)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-[var(--color-body)] hover:bg-gray-100 transition-colors"
+                className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide uppercase transition-colors ${
+                  isActive("/")
+                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                    : "text-[var(--color-body)] hover:bg-gray-100/60"
+                }`}
               >
                 Início
               </Link>
-              {CATEGORIES.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to="/categoria/$slug"
-                  params={{ slug: cat.slug }}
-                  onClick={() => setMenuOpen(false)}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-[var(--color-body)] hover:bg-gray-100 transition-colors"
-                >
-                  {cat.name}
-                </Link>
-              ))}
+              <Link
+                to="/como-avaliamos"
+                onClick={() => setMenuOpen(false)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide uppercase transition-colors ${
+                  isActive("/como-avaliamos")
+                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                    : "text-[var(--color-body)] hover:bg-gray-100/60"
+                }`}
+              >
+                Metodologia
+              </Link>
+              <Link
+                to="/afiliados"
+                onClick={() => setMenuOpen(false)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide uppercase transition-colors ${
+                  isActive("/afiliados")
+                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                    : "text-[var(--color-body)] hover:bg-gray-100/60"
+                }`}
+              >
+                Afiliados
+              </Link>
             </nav>
           </div>
         )}
