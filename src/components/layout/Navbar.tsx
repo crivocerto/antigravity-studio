@@ -67,6 +67,16 @@ export function Navbar() {
               Início
             </Link>
             <Link
+              to="/reviews"
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
+                isActive("/reviews")
+                  ? "bg-white text-[var(--color-primary)] shadow-sm"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
+              }`}
+            >
+              Reviews
+            </Link>
+            <Link
               to="/como-avaliamos"
               className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
                 isActive("/como-avaliamos")
