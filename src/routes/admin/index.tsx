@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { POSTS } from "@/data/posts";
+import { getPosts, type Post } from "@/data/posts";
 import { 
   TrendingUp, 
   MousePointerClick, 
@@ -51,6 +51,7 @@ interface AgentJob {
 function AdminDashboard() {
   const [clicks, setClicks] = useState<ClickRecord[]>([]);
   const [jobs, setJobs] = useState<AgentJob[]>([]);
+  const [postsCache, setPostsCache] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -73,6 +74,9 @@ function AdminDashboard() {
 
       if (jobsError) console.error("Error fetching agent jobs:", jobsError);
       else setJobs(jobsData || []);
+
+      const postsData = await getPosts();
+      setPostsCache(postsData);
     } catch (err) {
       console.error("Error fetching telemetry:", err);
       // Removemos o fallback de mock; dashboard ficará zerado caso não haja dados reais.
@@ -122,7 +126,7 @@ function AdminDashboard() {
 
   // Find post title helper
   const getPostTitle = (postId: string) => {
-    const post = POSTS.find(p => p.id === postId || p.slug === postId);
+    const post = postsCache.find(p => p.id === postId || p.slug === postId);
     return post ? post.title : "Produto Externo / Deletado";
   };
 
