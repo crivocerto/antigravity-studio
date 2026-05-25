@@ -11,7 +11,8 @@ import {
   User, 
   Menu, 
   X,
-  TrendingUp
+  TrendingUp,
+  KeyRound
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -88,6 +89,11 @@ function AdminLayout() {
       to: "/admin/posts",
       label: "Gerenciar Reviews",
       icon: BookOpen,
+    },
+    {
+      to: "/admin/api",
+      label: "Integração API",
+      icon: KeyRound,
     },
   ];
 

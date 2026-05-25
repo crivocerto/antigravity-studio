@@ -75,8 +75,8 @@ function AdminDashboard() {
       else setJobs(jobsData || []);
     } catch (err) {
       console.error("Error fetching telemetry:", err);
-      // Fallback fallback data if database is empty/fresh
-      setClicks(generateMockTelemetry());
+      // Removemos o fallback de mock; dashboard ficará zerado caso não haja dados reais.
+      setClicks([]);
       setJobs([]);
     } finally {
       setLoading(false);
@@ -87,36 +87,6 @@ function AdminDashboard() {
   useEffect(() => {
     fetchTelemetry();
   }, []);
-
-  // Helper to generate mock telemetry for empty state so that dashboard looks rich
-  const generateMockTelemetry = (): ClickRecord[] => {
-    const mockPosts = POSTS;
-    const platforms: ("amazon" | "mercadolivre" | "shopee")[] = ["amazon", "mercadolivre", "shopee"];
-    const uas = [
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
-    ];
-
-    const generated: ClickRecord[] = [];
-    const now = new Date();
-
-    for (let i = 0; i < 48; i++) {
-      const date = new Date(now.getTime() - Math.random() * 6 * 24 * 60 * 60 * 1000);
-      const post = mockPosts[Math.floor(Math.random() * mockPosts.length)]!;
-      const platform = platforms[Math.floor(Math.random() * platforms.length)]!;
-      generated.push({
-        id: `mock-${i}`,
-        post_id: post.id,
-        platform,
-        affiliate_url: post.affiliateLinks[0]?.url || "https://amazon.com.br",
-        user_agent: uas[Math.floor(Math.random() * uas.length)]!,
-        created_at: date.toISOString(),
-      });
-    }
-
-    return generated.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  };
 
   // Aggregated calculations
   const totalClicks = clicks.length;
