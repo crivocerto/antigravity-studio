@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Search, Menu, X, CheckCircle2, ShieldAlert, LayoutDashboard } from "lucide-react";
+import { Search, Menu, X, Check, ShieldAlert, LayoutDashboard } from "lucide-react";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,8 +48,8 @@ export function Navbar() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--color-primary)] text-white shadow-md group-hover:scale-105 transition-transform duration-300">
-              <CheckCircle2 size={20} strokeWidth={2.5} />
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--color-ink)] text-[var(--color-primary)] shadow-md group-hover:scale-105 transition-transform duration-300">
+              <Check size={22} strokeWidth={4} />
             </div>
             <span className="text-lg font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
               Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>

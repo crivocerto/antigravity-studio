@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --color-primary: #0d9a6e;
-    --color-primary-bright: #10b981;
-    --color-primary-deep: #065f46;
+    --color-primary: #2563eb;
+    --color-primary-bright: #3b82f6;
+    --color-primary-deep: #1e40af;
     --color-primary-fg: #ffffff;
     --color-ink: #111318;
     --color-body: #2d3039;
@@ -34,8 +34,8 @@
   }
 
   ::selection {
-    background-color: #10b98133;
-    color: #065f46;
+    background-color: #3b82f633;
+    color: #1e40af;
   }
 }
 

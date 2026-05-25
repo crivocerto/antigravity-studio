@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, ExternalLink } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCategories, type Category } from "@/data/posts";
 
@@ -17,8 +17,8 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--color-primary)] text-white">
-                <CheckCircle2 size={18} strokeWidth={2.5} />
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-ink)] text-[var(--color-primary)]">
+                <Check size={20} strokeWidth={4} />
               </div>
               <span className="text-base font-bold text-[var(--color-ink)]">CrivoCerto</span>
             </Link>
