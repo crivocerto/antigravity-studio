@@ -1,8 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2, ExternalLink } from "lucide-react";
-import { CATEGORIES } from "@/data/posts";
+import { useEffect, useState } from "react";
+import { getCategories, type Category } from "@/data/posts";
 
 export function Footer() {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    getCategories().then(setCategories);
+  }, []);
+
   return (
     <footer className="border-t border-[var(--color-hairline)] bg-[var(--color-surface)] mt-20">
       <div className="mx-auto max-w-6xl px-4 py-12">
@@ -25,7 +32,7 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-[var(--color-ink)] mb-3">Categorias</h3>
             <ul className="flex flex-col gap-1.5">
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link
                     to="/categoria/$slug"
