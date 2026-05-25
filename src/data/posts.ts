@@ -129,6 +129,10 @@ export const getPosts = async (): Promise<Post[]> => {
       reading_time: 0,
       featured: true,
       status: "published",
+      heroImage: "https://images.unsplash.com/photo-1525785967371-87ba44b3e6cf",
+      publishedAt: new Date().toISOString(),
+      readingTime: 0,
+      affiliateLinks: [],
     }];
   }
   return data.map(mapPost);
