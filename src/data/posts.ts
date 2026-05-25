@@ -57,7 +57,24 @@ export const getPosts = async (): Promise<Post[]> => {
 
   if (error) {
     console.error("Error fetching posts:", error);
-    return [];
+    return [{
+      id: "error",
+      title: "Erro no Supabase: " + error.message,
+      excerpt: JSON.stringify(error),
+      slug: "error",
+      content: "Erro: " + error.details,
+      category_id: "error",
+      tags: [],
+      rating: 0,
+      pros: [],
+      cons: [],
+      affiliate_links: [],
+      hero_image: "",
+      published_at: new Date().toISOString(),
+      reading_time: 0,
+      featured: true,
+      status: "published",
+    }];
   }
   return data.map(mapPost);
 };
