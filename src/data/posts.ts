@@ -53,25 +53,56 @@ const mapPost = (dbPost: any): Post => {
     }
   }
 
-  const content = parsedContent?.body || dbPost.content || "";
+  const contentString = parsedContent?.body || parsedContent?.texto || dbPost.content || "";
   let excerpt = dbPost.excerpt;
-  if (!excerpt && parsedContent?.body) {
-    excerpt = parsedContent.body.substring(0, 150) + "...";
+  if (!excerpt && contentString) {
+    excerpt = contentString.substring(0, 150) + "...";
   }
 
-  const rating = parsedContent?.crivo_meter ? (parsedContent.crivo_meter / 10) : (dbPost.rating || 0);
-  const pros = parsedContent?.pros || dbPost.pros || [];
-  const cons = parsedContent?.cons || dbPost.cons || [];
+  let rating = parsedContent?.crivo_meter ? (parsedContent.crivo_meter / 10) : (dbPost.rating || 0);
+  let pros = parsedContent?.pros || dbPost.pros || [];
+  let cons = parsedContent?.cons || dbPost.cons || [];
+  let affiliateLinks = dbPost.affiliate_links || dbPost.affiliateLinks || [];
+  
+  // AI NLP Recovery - Extrair dados via Regex caso a IA tenha retornado um blocão de texto
+  if (contentString) {
+    if (rating === 0) {
+      const ratingMatch = contentString.match(/Nota[^:]*?:\s*(\d+(?:\.\d+)?)\/10/i);
+      if (ratingMatch && ratingMatch[1]) rating = parseFloat(ratingMatch[1]);
+    }
+    if (pros.length === 0) {
+      const prosSection = contentString.match(/\*\*Pr[oó]s:\*\*([\s\S]*?)(?=\*\*Contras:\*\*|##|$)/i);
+      if (prosSection && prosSection[1]) {
+        pros = prosSection[1].split('\n').filter((l: string) => l.trim().startsWith('-')).map((l: string) => l.replace(/^-\s*/, '').trim());
+      }
+    }
+    if (cons.length === 0) {
+      const consSection = contentString.match(/\*\*Contras:\*\*([\s\S]*?)(?=\*\*|##|$)/i);
+      if (consSection && consSection[1]) {
+        cons = consSection[1].split('\n').filter((l: string) => l.trim().startsWith('-')).map((l: string) => l.replace(/^-\s*/, '').trim());
+      }
+    }
+    if (affiliateLinks.length === 0) {
+      const linksSection = contentString.match(/## Onde Comprar[\s\S]*?(?=(##|$))/i);
+      if (linksSection && linksSection[0]) {
+        const linkMatches = [...linksSection[0].matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)];
+        if (linkMatches.length > 0) {
+          affiliateLinks = linkMatches.map(m => {
+            let platform = "other";
+            if (m[1].toLowerCase().includes("amazon")) platform = "amazon";
+            else if (m[1].toLowerCase().includes("mercado livre") || m[1].toLowerCase().includes("meli")) platform = "mercadolivre";
+            return { url: m[2], label: m[1], price: 0, platform };
+          });
+        }
+      }
+    }
+  }
+
   const heroImage = parsedContent?.hero_image || dbPost.hero_image || dbPost.heroImage || "https://images.unsplash.com/photo-1525785967371-87ba44b3e6cf";
 
-  let affiliateLinks = dbPost.affiliate_links || dbPost.affiliateLinks || [];
   if (affiliateLinks.length === 0 && (parsedContent?.price_amazon || parsedContent?.price_ml)) {
-    if (parsedContent.price_amazon) {
-      affiliateLinks.push({ url: parsedContent.price_amazon, label: "Ver na Amazon", price: 0, platform: "amazon" });
-    }
-    if (parsedContent.price_ml) {
-      affiliateLinks.push({ url: parsedContent.price_ml, label: "Ver no Mercado Livre", price: 0, platform: "mercadolivre" });
-    }
+    if (parsedContent.price_amazon) affiliateLinks.push({ url: parsedContent.price_amazon, label: "Ver na Amazon", price: 0, platform: "amazon" });
+    if (parsedContent.price_ml) affiliateLinks.push({ url: parsedContent.price_ml, label: "Ver no Mercado Livre", price: 0, platform: "mercadolivre" });
   }
 
   const rawCat = dbPost.categories || dbPost.category || dbPost.Categories;
@@ -90,7 +121,7 @@ const mapPost = (dbPost: any): Post => {
   return {
     ...dbPost,
     excerpt,
-    content,
+    content: contentString,
     rating,
     pros,
     cons,
