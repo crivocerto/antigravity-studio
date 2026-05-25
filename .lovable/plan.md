@@ -1,42 +1,50 @@
-# Criar login admin
+## Relatório curto e objetivo
 
-A página `/admin/login` já existe e usa `supabase.auth.signInWithPassword`. Falta apenas criar o usuário no Supabase Auth.
+**Diagnóstico:** os reviews não sumiram do banco; o app é que voltou a apontar para um Supabase fake.
 
-Pelos logs, o e-mail `certocrivo@gmail.com` foi criado e depois deletado hoje cedo — por isso o login não funciona.
+**Prova dura:** as requisições do preview estão indo para `https://placeholder-project.supabase.co/rest/v1/posts` com `placeholder-anon-key`, então **nem chegam no seu projeto real** (`sqittiosnjiwfwbdcypu`).
 
-## O que vou fazer
+**Causa raiz:** em `src/integrations/supabase/client.ts` existe fallback silencioso para placeholder quando as envs não entram no runtime. Isso mascara a falha de configuração e transforma um erro claro de ambiente em “sumiço de reviews”.
 
-Rodar uma migração SQL que insere o usuário diretamente em `auth.users` já confirmado (sem precisar de e-mail de verificação):
+**Conclusão incisiva:** o problema hoje **não é banco, nem RLS, nem conteúdo**. É **configuração frágil de cliente Supabase + ausência de fail-fast**. Depois de commits/rebuilds, a app degrada para um endpoint inválido sem travar de forma explícita.
 
-- E-mail: `certocrivo@gmail.com`
-- Senha: `Teste123@`
-- `email_confirmed_at` preenchido para liberar login imediato
-- Senha gravada com `crypt(..., gen_salt('bf'))` (bcrypt, mesmo formato que o GoTrue usa)
+## Plano de blindagem
 
-Depois disso você acessa `/admin/login`, entra com as credenciais e cai no `/admin`.
+1. **Remover fallback para placeholder**
+   - Eliminar URLs/chaves fake do cliente Supabase.
+   - Se faltar env, quebrar com erro explícito e mensagem clara.
 
-## Detalhe técnico
+2. **Centralizar a configuração do Supabase**
+   - Manter um único ponto oficial de import do client.
+   - Impedir múltiplas formas de resolver URL/key.
 
-```sql
-INSERT INTO auth.users (
-  instance_id, id, aud, role, email,
-  encrypted_password, email_confirmed_at,
-  raw_app_meta_data, raw_user_meta_data,
-  created_at, updated_at, confirmation_token,
-  email_change, email_change_token_new, recovery_token
-)
-VALUES (
-  '00000000-0000-0000-0000-000000000000',
-  gen_random_uuid(), 'authenticated', 'authenticated',
-  'certocrivo@gmail.com',
-  crypt('Teste123@', gen_salt('bf')),
-  now(),
-  '{"provider":"email","providers":["email"]}'::jsonb,
-  '{}'::jsonb,
-  now(), now(), '', '', '', ''
-);
-```
+3. **Fail-fast com diagnóstico legível**
+   - Mostrar erro claro quando `VITE_SUPABASE_URL` ou `VITE_SUPABASE_PUBLISHABLE_KEY` estiver ausente.
+   - Evitar que loaders tentem buscar dados em endpoint inválido.
 
-Observação: a guideline padrão desaconselha mexer no schema `auth`, mas inserir um usuário é a única forma de criar conta sem expor a service-role key no frontend. É uma operação pontual e segura.
+4. **Blindar a camada de dados dos reviews**
+   - Padronizar `getPosts`, `getFeaturedPosts`, `getCategories` e `getPostBySlug` para usar somente o client oficial.
+   - Revisar imports soltos e acessos paralelos ao Supabase.
 
-Nenhuma alteração de código é necessária — só a migração.
+5. **Adicionar verificação de sanidade**
+   - Validar em runtime que a URL usada contém o project ref correto (`sqittiosnjiwfwbdcypu`).
+   - Se não contiver, logar erro crítico imediatamente.
+
+6. **Reduzir risco de regressão pós-commit**
+   - Revisar páginas `/`, `/reviews` e `/review/$slug` para não esconder falhas de conexão como se fossem “lista vazia”.
+   - Exibir estado de erro real em vez de parecer ausência de conteúdo.
+
+## Detalhes técnicos
+
+- Arquivo principal sob suspeita: `src/integrations/supabase/client.ts`
+- Sintoma capturado: requests para `placeholder-project.supabase.co`
+- Tabelas não parecem ser o gargalo atual:
+  - `posts`: leitura pública liberada
+  - `categories`: leitura pública liberada
+- Logo, **RLS não é o primeiro alvo da correção** neste incidente.
+
+## Entrega da implementação
+
+Vou aplicar a blindagem em duas frentes:
+- **Correção imediata:** impedir placeholder e restaurar leitura dos reviews
+- **Blindagem estrutural:** tornar impossível esse sumiço silencioso voltar após novos commits
