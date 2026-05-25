@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { POSTS } from "@/data/posts";
+import { getPosts } from "@/data/posts";
 import type { Post } from "@/data/posts";
 import { 
   Plus, 
@@ -29,40 +29,11 @@ function AdminPosts() {
   const fetchPosts = async () => {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("publishedAt", { ascending: false });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        // Format database schema to fit Post structure
-        const formatted: Post[] = data.map((d: any) => ({
-          id: d.id,
-          slug: d.slug,
-          title: d.title,
-          excerpt: d.excerpt,
-          content: d.content || "",
-          category: d.category || { id: "eletronicos", name: "Eletrônicos", slug: "eletronicos", icon: "Cpu", description: "" },
-          tags: d.tags || [],
-          rating: d.rating || 8.0,
-          pros: d.pros || [],
-          cons: d.cons || [],
-          affiliateLinks: d.affiliate_links || [],
-          heroImage: d.hero_image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80",
-          publishedAt: d.publishedAt || new Date().toISOString().split("T")[0],
-          readingTime: d.reading_time || 5,
-          featured: d.featured || false,
-        }));
-        setPostsList(formatted);
-      } else {
-        setPostsList(POSTS);
-      }
+      const data = await getPosts();
+      setPostsList(data);
     } catch (err) {
       console.error("Error fetching posts:", err);
-      // Fallback to static mock posts
-      setPostsList(POSTS);
+      setPostsList([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

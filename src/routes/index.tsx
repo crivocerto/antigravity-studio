@@ -1,15 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, TrendingUp, ShieldCheck, Zap } from "lucide-react";
 import { PostCard } from "@/components/blog/PostCard";
-import { CATEGORIES, getFeaturedPosts, POSTS } from "@/data/posts";
+import { getCategories, getFeaturedPosts, getPosts } from "@/data/posts";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const [featured, allRecent, categories] = await Promise.all([
+      getFeaturedPosts(),
+      getPosts(),
+      getCategories(),
+    ]);
+    return {
+      featured,
+      recent: allRecent.slice(0, 6),
+      categories,
+    };
+  },
   component: HomePage,
 });
 
 function HomePage() {
-  const featured = getFeaturedPosts();
-  const recent = POSTS.slice(0, 6);
+  const { featured, recent, categories } = Route.useLoaderData();
 
   return (
     <div className="animate-fade-in">
@@ -87,7 +98,7 @@ function HomePage() {
             Navegue por Categoria
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const style = {
                 eletronicos: {
                   gradient: "from-teal-400 to-emerald-600",

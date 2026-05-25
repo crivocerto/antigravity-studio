@@ -9,15 +9,22 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
-import { getPostBySlug, POSTS } from "@/data/posts";
+import { getPostBySlug, getPostsByCategory } from "@/data/posts";
 import { PostCard } from "@/components/blog/PostCard";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/review/$slug")({
-  loader: ({ params }) => {
-    const post = getPostBySlug(params.slug);
+  loader: async ({ params }) => {
+    const post = await getPostBySlug(params.slug);
     if (!post) throw notFound();
-    return post;
+    
+    let relatedPosts = [];
+    if (post.category) {
+      relatedPosts = await getPostsByCategory(post.category.slug);
+    }
+    const related = relatedPosts.filter((p) => p.id !== post.id).slice(0, 3);
+
+    return { post, related };
   },
   component: ReviewPage,
   notFoundComponent: () => (
@@ -90,7 +97,7 @@ function RatingMeter({ rating }: { rating: number }) {
 }
 
 function ReviewPage() {
-  const post = Route.useLoaderData();
+  const { post, related } = Route.useLoaderData();
 
   const handleAffiliateClick = (platform: "amazon" | "mercadolivre" | "shopee", url: string) => {
     supabase
@@ -98,8 +105,8 @@ function ReviewPage() {
       .insert({
         post_id: post.id,
         platform,
-        affiliate_url: url,
-        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        url,
+        user_agent: navigator.userAgent,
       })
       .then(({ error }) => {
         if (error) {
@@ -107,10 +114,6 @@ function ReviewPage() {
         }
       });
   };
-
-  const related = POSTS.filter(
-    (p) => p.category.id === post.category.id && p.id !== post.id
-  ).slice(0, 3);
 
   const platformLabel: Record<string, string> = {
     amazon: "Amazon",

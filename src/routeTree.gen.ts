@@ -19,6 +19,7 @@ import { Route as ReviewSlugRouteImport } from './routes/review.$slug'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as AdminPostsRouteImport } from './routes/admin/posts'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminApiRouteImport } from './routes/admin/api'
 
 const ComoAvaliamosRoute = ComoAvaliamosRouteImport.update({
   id: '/como-avaliamos',
@@ -70,6 +71,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminApiRoute = AdminApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
+    | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
     | '/categoria/$slug'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
+    | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
     | '/categoria/$slug'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
+    | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
     | '/categoria/$slug'
@@ -227,16 +239,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/api': {
+      id: '/admin/api'
+      path: '/api'
+      fullPath: '/admin/api'
+      preLoaderRoute: typeof AdminApiRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminApiRoute: typeof AdminApiRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminPostsRoute: typeof AdminPostsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminApiRoute: AdminApiRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminPostsRoute: AdminPostsRoute,
   AdminIndexRoute: AdminIndexRoute,
