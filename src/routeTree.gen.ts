@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ComoAvaliamosRouteImport } from './routes/como-avaliamos'
 import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -20,6 +21,11 @@ import { Route as AdminPostsRouteImport } from './routes/admin/posts'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminApiRouteImport } from './routes/admin/api'
 
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComoAvaliamosRoute = ComoAvaliamosRouteImport.update({
   id: '/como-avaliamos',
   path: '/como-avaliamos',
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/reviews': typeof ReviewsRoute
   '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/reviews': typeof ReviewsRoute
   '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
+  '/reviews': typeof ReviewsRoute
   '/admin/api': typeof AdminApiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/busca'
     | '/como-avaliamos'
+    | '/reviews'
     | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/busca'
     | '/como-avaliamos'
+    | '/reviews'
     | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/busca'
     | '/como-avaliamos'
+    | '/reviews'
     | '/admin/api'
     | '/admin/login'
     | '/admin/posts'
@@ -150,12 +162,20 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BuscaRoute: typeof BuscaRoute
   ComoAvaliamosRoute: typeof ComoAvaliamosRoute
+  ReviewsRoute: typeof ReviewsRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   ReviewSlugRoute: typeof ReviewSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/como-avaliamos': {
       id: '/como-avaliamos'
       path: '/como-avaliamos'
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   BuscaRoute: BuscaRoute,
   ComoAvaliamosRoute: ComoAvaliamosRoute,
+  ReviewsRoute: ReviewsRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   ReviewSlugRoute: ReviewSlugRoute,
 }
