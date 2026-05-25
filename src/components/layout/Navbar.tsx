@@ -48,9 +48,7 @@ export function Navbar() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--color-ink)] text-[var(--color-primary)] shadow-md group-hover:scale-105 transition-transform duration-300">
-              <Check size={22} strokeWidth={4} />
-            </div>
+            <img src="/logo.png" alt="CrivoCerto" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-sm" />
             <span className="text-lg font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
               Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>
             </span>
