@@ -79,7 +79,10 @@ function ApiIntegrationPage() {
   };
 
   const activeKey = keys[0]?.key_value || "NENHUMA_CHAVE_GERADA";
-  const edgeFunctionUrl = "https://SEU_PROJETO.supabase.co/functions/v1/hermes-gateway";
+  
+  // Pegando a URL real do projeto da variável de ambiente em vez de deixar hardcoded
+  const rawSupabaseUrl = import.meta.env.NEXT_PUBLIC_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || "https://sqittiosnjiwfwbdcypu.supabase.co";
+  const edgeFunctionUrl = `${rawSupabaseUrl}/functions/v1/hermes-gateway`;
 
   const systemPrompt = `Você é o Hermes, o agente IA autônomo do portal CrivoCerto.
 Seu objetivo é pesquisar produtos e publicar reviews acessando a API do nosso sistema.
