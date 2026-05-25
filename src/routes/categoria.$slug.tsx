@@ -1,13 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getPostsByCategory, CATEGORIES } from "@/data/posts";
+import { getPostsByCategory, getCategories } from "@/data/posts";
 import { PostCard } from "@/components/blog/PostCard";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/categoria/$slug")({
-  loader: ({ params }) => {
-    const category = CATEGORIES.find((c) => c.slug === params.slug);
+  loader: async ({ params }) => {
+    const categories = await getCategories();
+    const category = categories.find((c) => c.slug === params.slug);
     if (!category) throw notFound();
-    const posts = getPostsByCategory(params.slug);
+    const posts = await getPostsByCategory(params.slug);
     return { category, posts };
   },
   component: CategoryPage,
