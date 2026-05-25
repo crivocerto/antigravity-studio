@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getPostBySlug, getPostsByCategory } from "@/data/posts";
+import type { Post } from "@/data/posts";
 import { PostCard } from "@/components/blog/PostCard";
 import { supabase } from "@/lib/supabase";
 
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/review/$slug")({
     const post = await getPostBySlug(params.slug);
     if (!post) throw notFound();
     
-    let relatedPosts = [];
+    let relatedPosts: Post[] = [];
     if (post.category) {
       relatedPosts = await getPostsByCategory(post.category.slug);
     }
@@ -100,7 +101,7 @@ function ReviewPage() {
   const { post, related } = Route.useLoaderData();
 
   const handleAffiliateClick = (platform: "amazon" | "mercadolivre" | "shopee", url: string) => {
-    supabase
+    (supabase as any)
       .from("clicks_tracking")
       .insert({
         post_id: post.id,
@@ -108,7 +109,7 @@ function ReviewPage() {
         url,
         user_agent: navigator.userAgent,
       })
-      .then(({ error }) => {
+      .then(({ error }: { error: unknown }) => {
         if (error) {
           console.error("Error tracking click:", error);
         }

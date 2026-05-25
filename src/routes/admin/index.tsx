@@ -58,7 +58,7 @@ function AdminDashboard() {
   const fetchTelemetry = async () => {
     setRefreshing(true);
     try {
-      const { data: clicksData, error: clicksError } = await supabase
+      const { data: clicksData, error: clicksError } = await (supabase as any)
         .from("clicks_tracking")
         .select("*")
         .order("created_at", { ascending: false });
@@ -66,7 +66,7 @@ function AdminDashboard() {
       if (clicksError) throw clicksError;
       setClicks(clicksData || []);
 
-      const { data: jobsData, error: jobsError } = await supabase
+      const { data: jobsData, error: jobsError } = await (supabase as any)
         .from("agent_jobs")
         .select("*")
         .order("started_at", { ascending: false })
