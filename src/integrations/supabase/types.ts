@@ -41,6 +41,119 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_value: string
+          last_used_at: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_value: string
+          last_used_at?: string | null
+          name?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_value?: string
+          last_used_at?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          description?: string | null
+          icon?: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Update: {
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          affiliate_links: Json | null
+          category_id: string | null
+          cons: string[] | null
+          content: string | null
+          excerpt: string | null
+          featured: boolean | null
+          hero_image: string | null
+          id: string
+          pros: string[] | null
+          published_at: string | null
+          rating: number | null
+          reading_time: number | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          affiliate_links?: Json | null
+          category_id?: string | null
+          cons?: string[] | null
+          content?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          hero_image?: string | null
+          id: string
+          pros?: string[] | null
+          published_at?: string | null
+          rating?: number | null
+          reading_time?: number | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          affiliate_links?: Json | null
+          category_id?: string | null
+          cons?: string[] | null
+          content?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          hero_image?: string | null
+          id?: string
+          pros?: string[] | null
+          published_at?: string | null
+          rating?: number | null
+          reading_time?: number | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
