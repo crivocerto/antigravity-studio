@@ -62,7 +62,7 @@ export const getPosts = async (): Promise<Post[]> => {
       title: "Erro no Supabase: " + error.message,
       excerpt: JSON.stringify(error),
       slug: "error",
-      content: "Erro: " + error.details,
+      content: "URL usada: " + import.meta.env.VITE_SUPABASE_URL + " ou " + import.meta.env.NEXT_PUBLIC_SUPABASE_URL,
       category_id: "error",
       category: { id: "err", name: "Erro", slug: "err", icon: "AlertTriangle", description: "" },
       tags: [],
