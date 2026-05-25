@@ -26,6 +26,24 @@ function RatingBadge({ rating }: { rating: number }) {
 }
 
 export function PostCard({ post, variant = "default" }: PostCardProps) {
+  if (post.slug.startsWith("error")) {
+    return (
+      <div className="group flex flex-col rounded-xl border border-red-200 bg-red-50 overflow-hidden shadow-sm p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-red-600 font-medium">
+            {post.category?.name || "Erro"}
+          </span>
+        </div>
+        <h3 className="text-base font-bold text-red-800 leading-snug">
+          {post.title}
+        </h3>
+        <p className="text-sm text-red-700 mt-1.5 break-all">
+          {post.content}
+        </p>
+      </div>
+    );
+  }
+
   if (variant === "compact") {
     return (
       <Link

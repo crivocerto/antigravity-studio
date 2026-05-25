@@ -35,16 +35,30 @@ export type Post = {
   status: string;
 };
 
-// Como o front-end mapeava propriedades em camelCase (affiliateLinks) 
-// e o banco tá em snake_case (affiliate_links), criamos um helper.
 const mapPost = (dbPost: any): Post => {
+  // Se for o nosso post fake de erro, apenas retornar
+  if (dbPost.id === "error") return dbPost as Post;
+
+  const rawCat = dbPost.categories || dbPost.category || dbPost.Categories;
+  const category = rawCat
+    ? Array.isArray(rawCat)
+      ? rawCat[0]
+      : rawCat
+    : {
+        id: "unknown",
+        name: "Sem Categoria",
+        slug: "unknown",
+        icon: "HelpCircle",
+        description: "",
+      };
+
   return {
     ...dbPost,
-    affiliateLinks: dbPost.affiliate_links,
-    heroImage: dbPost.hero_image,
-    publishedAt: dbPost.published_at,
-    readingTime: dbPost.reading_time,
-    category: dbPost.categories
+    affiliateLinks: dbPost.affiliate_links || dbPost.affiliateLinks || [],
+    heroImage: dbPost.hero_image || dbPost.heroImage || "",
+    publishedAt: dbPost.published_at || dbPost.publishedAt || new Date().toISOString(),
+    readingTime: dbPost.reading_time || dbPost.readingTime || 5,
+    category: category,
   };
 };
 
