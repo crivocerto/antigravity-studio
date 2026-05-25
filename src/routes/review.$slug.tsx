@@ -262,11 +262,7 @@ function ReviewPage() {
                 <div className="flex flex-col gap-3">
                   {post.affiliateLinks.map((link, i) => (
                     <div key={i}>
-                      {link.price && (
-                        <div className="text-lg font-extrabold text-[var(--color-ink)] mb-1.5">
-                          R$ {link.price.toFixed(2).replace(".", ",")}
-                        </div>
-                      )}
+
                       <a
                         href={link.url}
                         target="_blank"
@@ -283,17 +279,7 @@ function ReviewPage() {
                 </div>
               </div>
 
-              {/* Aviso afiliado */}
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex gap-2">
-                <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  Links de afiliado: ganhamos uma comissão sem custo extra para você.
-                  Isso não afeta nossa avaliação.{" "}
-                  <Link to="/afiliados" className="underline">
-                    Saiba mais
-                  </Link>
-                </p>
-              </div>
+
 
               {/* Tags */}
               <div className="mt-4 flex flex-wrap gap-1.5">

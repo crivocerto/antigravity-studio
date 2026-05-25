@@ -58,14 +58,6 @@ export function Footer() {
                   Como avaliamos
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/afiliados"
-                  className="text-sm text-[var(--color-mute)] hover:text-[var(--color-primary)] transition-colors"
-                >
-                  Política de afiliados
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
@@ -73,14 +65,6 @@ export function Footer() {
         <div className="border-t border-[var(--color-hairline)] pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <p className="text-xs text-[var(--color-stone)]">
             © {new Date().getFullYear()} CrivoCerto. Todos os direitos reservados.
-          </p>
-          <p className="text-xs text-[var(--color-stone)] flex items-center gap-1">
-            <ExternalLink size={11} />
-            Este site contém links de afiliado. Leia nossa{" "}
-            <Link to="/afiliados" className="underline hover:text-[var(--color-primary)]">
-              política de afiliados
-            </Link>
-            .
           </p>
         </div>
       </div>

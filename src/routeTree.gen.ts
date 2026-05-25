@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ComoAvaliamosRouteImport } from './routes/como-avaliamos'
 import { Route as BuscaRouteImport } from './routes/busca'
-import { Route as AfiliadosRouteImport } from './routes/afiliados'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -29,11 +28,6 @@ const ComoAvaliamosRoute = ComoAvaliamosRouteImport.update({
 const BuscaRoute = BuscaRouteImport.update({
   id: '/busca',
   path: '/busca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AfiliadosRoute = AfiliadosRouteImport.update({
-  id: '/afiliados',
-  path: '/afiliados',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -80,7 +74,6 @@ const AdminApiRoute = AdminApiRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
   '/admin/api': typeof AdminApiRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
   '/admin/api': typeof AdminApiRoute
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/afiliados': typeof AfiliadosRoute
   '/busca': typeof BuscaRoute
   '/como-avaliamos': typeof ComoAvaliamosRoute
   '/admin/api': typeof AdminApiRoute
@@ -121,7 +112,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
-    | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
     | '/admin/api'
@@ -133,7 +123,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
     | '/admin/api'
@@ -146,7 +135,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
-    | '/afiliados'
     | '/busca'
     | '/como-avaliamos'
     | '/admin/api'
@@ -160,7 +148,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  AfiliadosRoute: typeof AfiliadosRoute
   BuscaRoute: typeof BuscaRoute
   ComoAvaliamosRoute: typeof ComoAvaliamosRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
@@ -181,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/busca'
       fullPath: '/busca'
       preLoaderRoute: typeof BuscaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/afiliados': {
-      id: '/afiliados'
-      path: '/afiliados'
-      fullPath: '/afiliados'
-      preLoaderRoute: typeof AfiliadosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -268,7 +248,6 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  AfiliadosRoute: AfiliadosRoute,
   BuscaRoute: BuscaRoute,
   ComoAvaliamosRoute: ComoAvaliamosRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,

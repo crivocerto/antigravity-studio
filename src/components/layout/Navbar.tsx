@@ -78,16 +78,6 @@ export function Navbar() {
             >
               Metodologia
             </Link>
-            <Link
-              to="/afiliados"
-              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
-                isActive("/afiliados")
-                  ? "bg-white text-[var(--color-primary)] shadow-sm"
-                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
-              }`}
-            >
-              Afiliados
-            </Link>
           </nav>
 
           {/* Actions */}
@@ -174,17 +164,6 @@ export function Navbar() {
                 }`}
               >
                 Metodologia
-              </Link>
-              <Link
-                to="/afiliados"
-                onClick={() => setMenuOpen(false)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide uppercase transition-colors ${
-                  isActive("/afiliados")
-                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                    : "text-[var(--color-body)] hover:bg-gray-100/60"
-                }`}
-              >
-                Afiliados
               </Link>
             </nav>
           </div>

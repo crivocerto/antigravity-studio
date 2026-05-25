@@ -17,7 +17,7 @@ function ComoAvaliamosPage() {
       icon: ShieldCheck,
       title: "Independência editorial",
       description:
-        "Nenhuma marca paga para ser avaliada. Links de afiliado são adicionados depois da nota, sem influenciar o resultado.",
+        "Nenhuma marca paga para ser avaliada. Nossa avaliação é rigorosamente imparcial e focada no consumidor.",
     },
     {
       icon: TrendingUp,
