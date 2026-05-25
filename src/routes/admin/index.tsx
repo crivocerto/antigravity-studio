@@ -9,7 +9,11 @@ import {
   RefreshCw, 
   ExternalLink,
   Laptop,
-  Calendar
+  Calendar,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Clock
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -35,25 +39,45 @@ interface ClickRecord {
   created_at: string;
 }
 
+interface AgentJob {
+  id: string;
+  started_at: string;
+  completed_at: string | null;
+  status: "running" | "success" | "failed";
+  action: string;
+  metadata: any;
+}
+
 function AdminDashboard() {
   const [clicks, setClicks] = useState<ClickRecord[]>([]);
+  const [jobs, setJobs] = useState<AgentJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchTelemetry = async () => {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase
+      const { data: clicksData, error: clicksError } = await supabase
         .from("clicks_tracking")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setClicks(data || []);
+      if (clicksError) throw clicksError;
+      setClicks(clicksData || []);
+
+      const { data: jobsData, error: jobsError } = await supabase
+        .from("agent_jobs")
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(5);
+
+      if (jobsError) console.error("Error fetching agent jobs:", jobsError);
+      else setJobs(jobsData || []);
     } catch (err) {
       console.error("Error fetching telemetry:", err);
       // Fallback fallback data if database is empty/fresh
       setClicks(generateMockTelemetry());
+      setJobs([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -248,6 +272,72 @@ function AdminDashboard() {
                   <Area type="monotone" dataKey="shopee" name="Shopee" stroke="#EE4D2D" strokeWidth={2} fillOpacity={1} fill="url(#colorShopee)" />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Agent Jobs Monitor */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-lg shadow-black/30">
+            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-xl">
+                  <Activity size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Monitor Autônomo (Hermes)</h3>
+                  <p className="text-xs text-zinc-400">Últimos processos executados pelo agente IA</p>
+                </div>
+              </div>
+              <span className="flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-[var(--color-primary)] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--color-primary)]"></span>
+              </span>
+            </div>
+            
+            <div className="divide-y divide-zinc-850">
+              {jobs.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 text-sm">
+                  Nenhuma atividade do agente registrada ainda.
+                </div>
+              ) : (
+                jobs.map((job) => {
+                  const isRunning = job.status === "running";
+                  const isSuccess = job.status === "success";
+                  const isFailed = job.status === "failed";
+                  const startDate = new Date(job.started_at);
+                  
+                  return (
+                    <div key={job.id} className="p-4 flex items-center justify-between hover:bg-zinc-850/30 transition-colors">
+                      <div className="flex items-center gap-4">
+                        {isRunning && <Clock className="text-blue-400 animate-pulse" size={20} />}
+                        {isSuccess && <CheckCircle2 className="text-emerald-500" size={20} />}
+                        {isFailed && <XCircle className="text-red-500" size={20} />}
+                        
+                        <div>
+                          <p className="text-sm font-bold text-white flex items-center gap-2">
+                            {job.action}
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${
+                              isRunning ? "bg-blue-500/10 text-blue-400" :
+                              isSuccess ? "bg-emerald-500/10 text-emerald-400" :
+                              "bg-red-500/10 text-red-400"
+                            }`}>
+                              {job.status}
+                            </span>
+                          </p>
+                          <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+                            <Calendar size={12} />
+                            {startDate.toLocaleDateString("pt-BR")} às {startDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <pre className="text-[10px] text-zinc-500 bg-zinc-950 p-2 rounded-lg max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+                          {JSON.stringify(job.metadata)}
+                        </pre>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
