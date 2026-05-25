@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { searchPosts } from "@/data/posts";
+import { searchPosts, type Post } from "@/data/posts";
 import { PostCard } from "@/components/blog/PostCard";
 import { Search, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const searchSchema = z.object({
   q: z.string().optional().default(""),
@@ -18,8 +18,15 @@ function BuscaPage() {
   const { q } = Route.useSearch();
   const [query, setQuery] = useState(q);
   const navigate = Route.useNavigate();
+  const [results, setResults] = useState<Post[]>([]);
 
-  const results = q ? searchPosts(q) : [];
+  useEffect(() => {
+    if (!q) {
+      setResults([]);
+      return;
+    }
+    searchPosts(q).then(setResults).catch(() => setResults([]));
+  }, [q]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

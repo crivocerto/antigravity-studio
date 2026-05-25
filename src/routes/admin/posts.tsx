@@ -88,7 +88,7 @@ function AdminPosts() {
           publishedAt: new Date().toISOString().split("T")[0]!,
           readingTime: 6,
           featured: false,
-        };
+        } as unknown as Post;
         
         setPostsList(prev => [mockNewPost, ...prev]);
       }

@@ -4,8 +4,8 @@ export type Category = {
   id: string;
   name: string;
   slug: string;
-  icon: string;
-  description: string;
+  icon: string | null;
+  description: string | null;
 };
 
 export type AffiliateLink = {
@@ -22,7 +22,7 @@ export type Post = {
   excerpt: string;
   content: string;
   category_id: string;
-  category?: Category; // Populado via join
+  category: Category; // sempre populado pelo mapper
   tags: string[];
   rating: number; // 0–10
   pros: string[];
@@ -33,6 +33,11 @@ export type Post = {
   reading_time: number; // minutos
   featured: boolean;
   status: string;
+  // Aliases camelCase produzidos pelo mapper
+  heroImage: string;
+  readingTime: number;
+  publishedAt: string;
+  affiliateLinks: AffiliateLink[];
 };
 
 const mapPost = (dbPost: any): Post => {
@@ -124,6 +129,10 @@ export const getPosts = async (): Promise<Post[]> => {
       reading_time: 0,
       featured: true,
       status: "published",
+      heroImage: "https://images.unsplash.com/photo-1525785967371-87ba44b3e6cf",
+      publishedAt: new Date().toISOString(),
+      readingTime: 0,
+      affiliateLinks: [],
     }];
   }
   return data.map(mapPost);
