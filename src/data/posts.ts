@@ -169,15 +169,33 @@ export const getPosts = async (): Promise<Post[]> => {
   return data.map(mapPost);
 };
 
-export const getPostBySlug = async (slug: string): Promise<Post | undefined> => {
+export const getPostBySlug = async (slug: string): Promise<Post | null> => {
   const { data, error } = await supabase
     .from("posts")
-    .select(`*, categories(*)`)
+    .select(`
+      *,
+      categories:category_id (*)
+    `)
     .eq("slug", slug)
     .single();
 
-  if (error || !data) return undefined;
+  if (error || !data) return null;
   return mapPost(data);
+};
+
+export const deletePost = async (id: string): Promise<{ success: boolean; error?: any }> => {
+  try {
+    const { error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", id);
+      
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("Error deleting post:", err);
+    return { success: false, error: err };
+  }
 };
 
 export const getPostsByCategory = async (categorySlug: string): Promise<Post[]> => {
