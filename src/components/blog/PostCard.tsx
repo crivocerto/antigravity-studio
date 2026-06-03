@@ -45,10 +45,11 @@ export function PostCard({ post, variant = "default" }: PostCardProps) {
   }
 
   if (variant === "compact") {
+    const isGuide = post.slug.startsWith("/guias/");
     return (
       <Link
-        to="/review/$slug"
-        params={{ slug: post.slug }}
+        to={isGuide ? (post.slug as any) : "/review/$slug"}
+        params={isGuide ? undefined : { slug: post.slug }}
         className="group flex gap-3 items-start py-3 border-b border-[var(--color-hairline)] last:border-0 hover:opacity-80 transition-opacity"
       >
         <img
@@ -75,10 +76,12 @@ export function PostCard({ post, variant = "default" }: PostCardProps) {
   }
 
   if (variant === "featured") {
+    const isGuide = post.slug.startsWith("/guias/");
+    
     return (
       <Link
-        to="/review/$slug"
-        params={{ slug: post.slug }}
+        to={isGuide ? (post.slug as any) : "/review/$slug"}
+        params={isGuide ? undefined : { slug: post.slug }}
         className="group relative overflow-hidden rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-hairline)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
       >
         <div className="aspect-[16/9] overflow-hidden">
@@ -115,10 +118,11 @@ export function PostCard({ post, variant = "default" }: PostCardProps) {
   }
 
   // default
+  const isGuide = post.slug.startsWith("/guias/");
   return (
     <Link
-      to="/review/$slug"
-      params={{ slug: post.slug }}
+      to={isGuide ? (post.slug as any) : "/review/$slug"}
+      params={isGuide ? undefined : { slug: post.slug }}
       className="group flex flex-col rounded-xl border border-[var(--color-hairline)] bg-white overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
     >
       <div className="aspect-[16/10] overflow-hidden">
