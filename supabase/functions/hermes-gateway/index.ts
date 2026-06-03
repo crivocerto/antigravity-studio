@@ -102,17 +102,17 @@ serve(async (req) => {
 
       case "log_job":
         // Atualiza ou insere log na tabela agent_jobs
+        const jobPayload = {
+          status: body.status || "running",
+          action: payload.task || "unknown",
+          metadata: body.metadata || {},
+          completed_at: body.status !== "running" ? new Date().toISOString() : null
+        };
+        if (payload.id) jobPayload.id = payload.id;
+
         const { data: job, error: jobErr } = await supabase
           .from("agent_jobs")
-          .upsert([
-            {
-              id: payload.id || undefined,
-              status: body.status || "running",
-              action: payload.task || "unknown",
-              metadata: body.metadata || {},
-              completed_at: body.status !== "running" ? new Date().toISOString() : null
-            }
-          ])
+          .upsert([jobPayload])
           .select()
           .single();
         if (jobErr) throw jobErr;
