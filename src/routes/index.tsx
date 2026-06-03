@@ -1,18 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, TrendingUp, ShieldCheck, Zap } from "lucide-react";
 import { PostCard } from "@/components/blog/PostCard";
-import { getCategories, getFeaturedPosts, getPosts } from "@/data/posts";
+import { getCategories, getPublicGuides } from "@/data/posts";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [featured, allRecent, categories] = await Promise.all([
-      getFeaturedPosts(),
-      getPosts(),
+    const [guides, categories] = await Promise.all([
+      getPublicGuides(),
       getCategories(),
     ]);
     return {
-      featured,
-      recent: allRecent.slice(0, 6),
+      featured: guides.slice(0, 2),
+      recent: guides.slice(2, 8),
       categories,
     };
   },

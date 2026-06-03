@@ -170,6 +170,63 @@ export const getAdminGuides = async (): Promise<AdminGuide[]> => {
   }
   return data || [];
 };
+
+export const getPublicGuides = async (): Promise<Post[]> => {
+  const { data, error } = await supabase
+    .from("guides")
+    .select(`
+      *,
+      guide_products (
+        product_id,
+        rank_position,
+        products (
+          hero_image
+        )
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching public guides:", error);
+    return [];
+  }
+
+  return (data || []).map((guide: any) => {
+    // Pegar a imagem do produto #1 do ranking, ou fallback
+    const firstProduct = guide.guide_products?.sort((a: any, b: any) => a.rank_position - b.rank_position)[0];
+    const heroImage = firstProduct?.products?.hero_image || "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&q=80";
+
+    return {
+      id: guide.id,
+      title: guide.headline,
+      excerpt: guide.intro_text,
+      slug: guide.url_path,
+      content: "",
+      category_id: guide.category_slug,
+      category: {
+        id: guide.category_slug,
+        name: guide.category_slug.replace("-", " ").toUpperCase(),
+        slug: guide.category_slug,
+        icon: "TrendingUp",
+        description: null
+      },
+      tags: [],
+      rating: 9.5, // Estático para SEO Programático
+      pros: [],
+      cons: [],
+      affiliate_links: [],
+      hero_image: heroImage,
+      heroImage: heroImage,
+      published_at: guide.created_at,
+      publishedAt: guide.created_at,
+      reading_time: 4,
+      readingTime: 4,
+      featured: true,
+      status: "published",
+      affiliateLinks: []
+    } as Post;
+  });
+};
 export const getPostBySlug = async (slug: string): Promise<Post | null> => {
   const { data, error } = await supabase
     .from("posts")
