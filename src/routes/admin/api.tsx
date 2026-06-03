@@ -103,8 +103,11 @@ Para executar ações, envie o campo "action" no corpo da requisição.
 2. Registrar Log (Quando iniciar um trabalho):
 {"action": "log_job", "status": "running", "metadata": {"task": "pesquisando iphone"}}
 
-3. Inserir Post de Review:
-{"action": "insert_post", "payload": { "title": "...", "slug": "...", "category_id": "...", "content": {...} }}`;
+3. Inserir Produto (Upsert):
+{"action": "upsert_product", "payload": { "name": "...", "brand": "...", "spec_summary": "...", "pros": [], "cons": [], "affiliate_links": [], "hero_image": "..." }}
+
+4. Inserir Guia e Linkar Produtos:
+{"action": "insert_guide", "payload": { "headline": "...", "category_slug": "...", "persona_slug": "...", "context_slug": "...", "product_ids": ["uuid-1", "uuid-2"] }}`;
 
   return (
     <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">

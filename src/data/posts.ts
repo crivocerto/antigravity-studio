@@ -142,33 +142,34 @@ export const getPosts = async (): Promise<Post[]> => {
 
   if (error) {
     console.error("Error fetching posts:", error);
-    return [{
-      id: "error",
-      title: "Erro no Supabase: " + error.message,
-      excerpt: JSON.stringify(error),
-      slug: "error",
-      content: "Chaves env: " + Object.keys(import.meta.env).filter(k => k.includes("SUPABASE")).join(", ") + " | URL: " + import.meta.env.VITE_SUPABASE_URL,
-      category_id: "error",
-      category: { id: "err", name: "Erro", slug: "err", icon: "AlertTriangle", description: "" },
-      tags: [],
-      rating: 0,
-      pros: [],
-      cons: [],
-      affiliate_links: [],
-      hero_image: "https://images.unsplash.com/photo-1525785967371-87ba44b3e6cf",
-      published_at: new Date().toISOString(),
-      reading_time: 0,
-      featured: true,
-      status: "published",
-      heroImage: "https://images.unsplash.com/photo-1525785967371-87ba44b3e6cf",
-      publishedAt: new Date().toISOString(),
-      readingTime: 0,
-      affiliateLinks: [],
-    }];
+    return [];
   }
   return data.map(mapPost);
 };
 
+export interface AdminGuide {
+  id: string;
+  headline: string;
+  category_slug: string;
+  persona_slug: string;
+  context_slug: string;
+  created_at: string;
+  last_revalidated_at: string | null;
+  products_count: number;
+}
+
+export const getAdminGuides = async (): Promise<AdminGuide[]> => {
+  const { data, error } = await supabase
+    .from("admin_guides_view")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching admin guides:", error);
+    return [];
+  }
+  return data || [];
+};
 export const getPostBySlug = async (slug: string): Promise<Post | null> => {
   const { data, error } = await supabase
     .from("posts")

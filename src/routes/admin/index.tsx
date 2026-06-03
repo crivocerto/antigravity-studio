@@ -37,6 +37,8 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [chartData, setChartData] = useState<any[]>([]);
+
   const fetchTelemetry = async () => {
     setRefreshing(true);
     try {
@@ -55,17 +57,39 @@ function AdminDashboard() {
         setMetrics(metricsData);
       }
 
-      // 2. Fetch Recent Clicks
+      // 1.5 Fetch 7-day Metrics
+      const { data: dayMetrics, error: dayError } = await supabase.rpc("get_7_day_metrics");
+      if (!dayError && dayMetrics) {
+        setChartData(dayMetrics.map((d: any) => ({
+          date: d.day_date.substring(0, 5), // 'DD/MM'
+          amazon: Number(d.amazon_clicks),
+          mercadolivre: Number(d.mercadolivre_clicks),
+          shopee: Number(d.shopee_clicks)
+        })));
+      }
+
+      // 2. Fetch Recent Clicks (sem join com posts pois agora post_id = guide_id)
       const { data: clicksData } = await supabase
         .from("clicks_tracking")
         .select(`
-          id, platform, affiliate_url, user_agent, created_at,
-          posts ( title )
+          id, post_id, platform, affiliate_url, user_agent, created_at
         `)
         .order("created_at", { ascending: false })
         .limit(10);
       
-      setClicks(clicksData || []);
+      if (clicksData) {
+        // Buscar titulos dos guias manualmente para nao dar erro de FK
+        const guideIds = clicksData.map(c => c.post_id);
+        const { data: guidesData } = await supabase.from("guides").select("id, headline").in("id", guideIds);
+        
+        const enhancedClicks = clicksData.map(c => {
+          const guide = guidesData?.find(g => g.id === c.post_id);
+          return { ...c, guide_headline: guide?.headline || "Guia Não Encontrado" };
+        });
+        setClicks(enhancedClicks);
+      } else {
+        setClicks([]);
+      }
 
       // 3. Fetch Recent Jobs
       const { data: jobsData } = await supabase
@@ -87,17 +111,6 @@ function AdminDashboard() {
   useEffect(() => {
     fetchTelemetry();
   }, []);
-
-  // Mock de dados para o gráfico de performance de 7 dias (pois o banco real requer agregações diárias)
-  const chartData = [
-    { date: "Seg", amazon: 120, mercadolivre: 45, shopee: 20 },
-    { date: "Ter", amazon: 132, mercadolivre: 50, shopee: 22 },
-    { date: "Qua", amazon: 101, mercadolivre: 40, shopee: 15 },
-    { date: "Qui", amazon: 145, mercadolivre: 60, shopee: 30 },
-    { date: "Sex", amazon: 190, mercadolivre: 80, shopee: 45 },
-    { date: "Sáb", amazon: 250, mercadolivre: 110, shopee: 60 },
-    { date: "Dom", amazon: 210, mercadolivre: 90, shopee: 50 },
-  ];
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -316,7 +329,7 @@ function AdminDashboard() {
                         return (
                           <tr key={click.id} className="bg-white/5 hover:bg-white/10 transition-colors group">
                             <td className="p-4 rounded-l-2xl font-bold text-white max-w-[200px] truncate">
-                              {click.posts?.title || "Produto Não Encontrado"}
+                              {click.guide_headline || "Guia Não Encontrado"}
                             </td>
                             <td className="p-4">
                               <span className={`inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${platColor}`}>
