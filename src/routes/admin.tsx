@@ -98,33 +98,41 @@ function AdminLayout() {
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-zinc-900 border-r border-zinc-800 text-zinc-300">
+    <div className="flex flex-col h-full bg-zinc-950 border-r border-white/5 text-zinc-300 relative overflow-hidden">
+      {/* Liquid Glass Background Effects */}
+      <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-[var(--color-primary)]/10 to-transparent pointer-events-none" />
+      <div className="absolute top-0 -left-32 w-64 h-64 bg-[var(--color-primary)]/5 rounded-full blur-3xl pointer-events-none" />
+
       {/* Brand Header */}
-      <div className="flex items-center gap-2 px-6 py-5 border-b border-zinc-800">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--color-primary)] text-white shadow-md">
-          <CheckCircle2 size={18} strokeWidth={2.5} />
+      <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5 relative z-10">
+        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[#046c4e] text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-white/20 backdrop-blur-md">
+          <CheckCircle2 size={20} strokeWidth={2.5} />
         </div>
-        <span className="text-base font-extrabold tracking-tight text-white">
-          Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>
-        </span>
-        <span className="text-[9px] font-bold bg-zinc-800 text-[var(--color-primary)] border border-zinc-700 px-1.5 py-0.5 rounded-full uppercase ml-1">
-          Admin
-        </span>
+        <div className="flex flex-col leading-tight">
+          <span className="text-lg font-black tracking-tight text-white drop-shadow-sm">
+            Crivo<span className="text-[var(--color-primary)]">Certo</span>
+          </span>
+          <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest mt-0.5">
+            Admin System
+          </span>
+        </div>
       </div>
 
-      {/* User Info */}
-      <div className="px-6 py-4 flex items-center gap-3 border-b border-zinc-850 bg-zinc-900/40">
-        <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-zinc-300 shrink-0">
-          <User size={16} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-white truncate">Administrador</p>
-          <p className="text-[10px] text-zinc-500 truncate mt-0.5">{session?.user?.email}</p>
+      {/* User Info - Glassmorphism */}
+      <div className="px-5 py-5 mx-3 mt-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm relative z-10 shadow-inner">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center border border-white/10 text-zinc-300 shadow-md">
+            <User size={18} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-white truncate drop-shadow-sm">Administrador</p>
+            <p className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">{session?.user?.email}</p>
+          </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex-1 px-4 py-6 space-y-1.5 relative z-10">
         {sidebarLinks.map((link) => {
           const Icon = link.icon;
           const isActiveRoute = link.activeOnlyOnExact 
@@ -136,13 +144,15 @@ function AdminLayout() {
               key={link.to}
               to={link.to}
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide uppercase transition-all duration-200 ${
+              className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold tracking-wide uppercase transition-all duration-300 ${
                 isActiveRoute
-                  ? "bg-[var(--color-primary)]/10 text-white border-l-4 border-[var(--color-primary)]"
-                  : "hover:bg-zinc-800 hover:text-white"
+                  ? "bg-gradient-to-r from-[var(--color-primary)]/15 to-transparent text-white border-l-4 border-[var(--color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  : "text-zinc-400 hover:bg-white/5 hover:text-white"
               }`}
             >
-              <Icon size={16} className={isActiveRoute ? "text-[var(--color-primary)]" : ""} />
+              <div className={`p-1.5 rounded-lg transition-colors ${isActiveRoute ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'bg-transparent text-zinc-500 group-hover:text-zinc-300 group-hover:bg-white/5'}`}>
+                <Icon size={18} />
+              </div>
               {link.label}
             </Link>
           );
@@ -150,19 +160,23 @@ function AdminLayout() {
       </nav>
 
       {/* Footer / Actions */}
-      <div className="p-4 border-t border-zinc-800 space-y-1">
+      <div className="p-4 border-t border-white/5 space-y-2 relative z-10 bg-zinc-950/50 backdrop-blur-md">
         <Link
           to="/"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-zinc-800 hover:text-white transition-colors"
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-zinc-400 hover:bg-white/5 hover:text-white transition-all duration-300"
         >
-          <ArrowLeft size={16} />
+          <div className="p-1.5 rounded-lg bg-zinc-900 text-zinc-500 border border-white/5">
+            <ArrowLeft size={16} />
+          </div>
           Voltar ao Site
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium w-full text-red-400 hover:bg-red-950/20 hover:text-red-300 transition-colors"
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold w-full text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300"
         >
-          <LogOut size={16} />
+          <div className="p-1.5 rounded-lg bg-red-950/30 text-red-400 border border-red-500/10">
+            <LogOut size={16} />
+          </div>
           Encerrar Sessão
         </button>
       </div>
