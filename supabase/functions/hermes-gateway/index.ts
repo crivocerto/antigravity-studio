@@ -70,6 +70,36 @@ serve(async (req) => {
         responseData = newPost;
         break;
 
+      case "upsert_product":
+        const { data: upsertedProduct, error: upsertErr } = await supabase
+          .from("products")
+          .upsert([payload], { onConflict: "slug" })
+          .select()
+          .single();
+        if (upsertErr) throw upsertErr;
+        responseData = upsertedProduct;
+        break;
+
+      case "insert_guide":
+        const { data: newGuide, error: guideErr } = await supabase
+          .from("guides")
+          .insert([payload])
+          .select()
+          .single();
+        if (guideErr) throw guideErr;
+        responseData = newGuide;
+        break;
+
+      case "link_product_to_guide":
+        const { data: linkedProduct, error: linkErr } = await supabase
+          .from("guide_products")
+          .upsert([payload], { onConflict: "guide_id,product_id" })
+          .select()
+          .single();
+        if (linkErr) throw linkErr;
+        responseData = linkedProduct;
+        break;
+
       case "log_job":
         // Atualiza ou insere log na tabela agent_jobs
         const { data: job, error: jobErr } = await supabase

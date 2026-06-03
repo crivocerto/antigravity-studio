@@ -20,6 +20,7 @@ import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as AdminPostsRouteImport } from './routes/admin/posts'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminApiRouteImport } from './routes/admin/api'
+import { Route as GuiasCategoriaPersonaContextoRouteImport } from './routes/guias.$categoria.$persona.$contexto'
 
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
@@ -76,6 +77,12 @@ const AdminApiRoute = AdminApiRouteImport.update({
   path: '/api',
   getParentRoute: () => AdminRoute,
 } as any)
+const GuiasCategoriaPersonaContextoRoute =
+  GuiasCategoriaPersonaContextoRouteImport.update({
+    id: '/guias/$categoria/$persona/$contexto',
+    path: '/guias/$categoria/$persona/$contexto',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/review/$slug': typeof ReviewSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/guias/$categoria/$persona/$contexto': typeof GuiasCategoriaPersonaContextoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/review/$slug': typeof ReviewSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/guias/$categoria/$persona/$contexto': typeof GuiasCategoriaPersonaContextoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,6 +124,7 @@ export interface FileRoutesById {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/review/$slug': typeof ReviewSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/guias/$categoria/$persona/$contexto': typeof GuiasCategoriaPersonaContextoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/review/$slug'
     | '/admin/'
+    | '/guias/$categoria/$persona/$contexto'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/review/$slug'
     | '/admin'
+    | '/guias/$categoria/$persona/$contexto'
   id:
     | '__root__'
     | '/'
@@ -155,6 +167,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/review/$slug'
     | '/admin/'
+    | '/guias/$categoria/$persona/$contexto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,6 +178,7 @@ export interface RootRouteChildren {
   ReviewsRoute: typeof ReviewsRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   ReviewSlugRoute: typeof ReviewSlugRoute
+  GuiasCategoriaPersonaContextoRoute: typeof GuiasCategoriaPersonaContextoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminApiRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/guias/$categoria/$persona/$contexto': {
+      id: '/guias/$categoria/$persona/$contexto'
+      path: '/guias/$categoria/$persona/$contexto'
+      fullPath: '/guias/$categoria/$persona/$contexto'
+      preLoaderRoute: typeof GuiasCategoriaPersonaContextoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -273,6 +294,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsRoute: ReviewsRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   ReviewSlugRoute: ReviewSlugRoute,
+  GuiasCategoriaPersonaContextoRoute: GuiasCategoriaPersonaContextoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
