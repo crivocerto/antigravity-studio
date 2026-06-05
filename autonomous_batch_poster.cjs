@@ -1,9 +1,29 @@
 const { createClient } = require('@supabase/supabase-js');
+const google = require('googlethis');
 
 // Configuração Supabase Edge Function URL e Key
 const SUPABASE_URL = "https://sqittiosnjiwfwbdcypu.supabase.co";
 const GATEWAY_URL = `${SUPABASE_URL}/functions/v1/hermes-gateway`;
 const GATEWAY_KEY = "hrms_7chw9dkuu5pshkrjxufk5b";
+
+async function fetchRealProductImage(query) {
+  try {
+    console.log(`🔍 Buscando imagem real para: ${query}...`);
+    const images = await google.image(query + " product high quality", { safe: false });
+    if (images && images.length > 0) {
+      // Retorna a primeira URL de imagem válida (preferencialmente amazon, fabricantes)
+      const validImages = images.filter(img => img.url.endsWith('.jpg') || img.url.endsWith('.png') || img.url.includes('amazon') || img.url.includes('cdn'));
+      const finalUrl = validImages.length > 0 ? validImages[0].url : images[0].url;
+      console.log(`✅ Imagem real encontrada: ${finalUrl}`);
+      return finalUrl;
+    }
+  } catch (err) {
+    console.log(`⚠️ Falha ao buscar imagem real para ${query}:`, err.message);
+  }
+  return null;
+}
+
+
 
 async function sendRequest(payload) {
   const response = await fetch(GATEWAY_URL, {
@@ -128,6 +148,11 @@ async function runAutonomousPoster() {
     
     for (const prod of batch.products) {
       console.log(`📦 Fazendo Upsert do Produto: ${prod.brand} ${prod.name}`);
+      
+      // Busca a imagem real via Node.js scraper
+      const realImage = await fetchRealProductImage(`${prod.brand} ${prod.name}`);
+      const finalImage = realImage || prod.hero_image;
+
       const prodRes = await sendRequest({
         action: "upsert_product",
         payload: {
@@ -138,7 +163,7 @@ async function runAutonomousPoster() {
           spec_summary: prod.spec_summary,
           pros: prod.pros,
           cons: prod.cons,
-          hero_image: prod.hero_image,
+          hero_image: finalImage,
           affiliate_links: prod.affiliate_links
         }
       });
