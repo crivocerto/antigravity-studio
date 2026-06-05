@@ -15,6 +15,7 @@ export const Route = createFileRoute("/")({
       categories,
     };
   },
+  staleTime: 0,
   component: HomePage,
 });
 
