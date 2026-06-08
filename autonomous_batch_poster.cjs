@@ -153,12 +153,31 @@ async function runAutonomousPoster() {
       const realImage = await fetchRealProductImage(`${prod.brand} ${prod.name}`);
       const finalImage = realImage || prod.hero_image;
 
-      // Gerando links de afiliados dinâmicos focados em busca real de alta conversão
+      // Gerando links de afiliados EXATOS reais usando web scraping de metadados
       const searchQuery = encodeURIComponent(`${prod.brand} ${prod.name}`);
       const mlQuery = `${prod.brand}-${prod.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      
+      let amzUrl = `https://www.amazon.com.br/s?k=${searchQuery}`;
+      let mlUrl = `https://lista.mercadolivre.com.br/${mlQuery}`;
+
+      try {
+        console.log(`🔍 Buscando URL EXATA para: ${prod.brand} ${prod.name}...`);
+        const amzImages = await google.image(`${prod.brand} ${prod.name} site:amazon.com.br`, { safe: false });
+        if(amzImages && amzImages[0]?.origin?.website?.url) {
+          amzUrl = amzImages[0].origin.website.url;
+        }
+
+        const mlImages = await google.image(`${prod.brand} ${prod.name} site:mercadolivre.com.br`, { safe: false });
+        if(mlImages && mlImages[0]?.origin?.website?.url) {
+          mlUrl = mlImages[0].origin.website.url;
+        }
+      } catch(e) {
+        console.log("⚠️ Fallback para links de busca devido a erro na busca exata");
+      }
+
       const dynamicLinks = [
-        { platform: "amazon", url: `https://www.amazon.com.br/s?k=${searchQuery}`, price: 0 },
-        { platform: "mercado-livre", url: `https://lista.mercadolivre.com.br/${mlQuery}`, price: 0 }
+        { platform: "amazon", url: amzUrl, price: 0 },
+        { platform: "mercado-livre", url: mlUrl, price: 0 }
       ];
 
       const prodRes = await sendRequest({
