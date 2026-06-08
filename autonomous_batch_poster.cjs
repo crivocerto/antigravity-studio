@@ -153,6 +153,14 @@ async function runAutonomousPoster() {
       const realImage = await fetchRealProductImage(`${prod.brand} ${prod.name}`);
       const finalImage = realImage || prod.hero_image;
 
+      // Gerando links de afiliados dinâmicos focados em busca real de alta conversão
+      const searchQuery = encodeURIComponent(`${prod.brand} ${prod.name}`);
+      const mlQuery = `${prod.brand}-${prod.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const dynamicLinks = [
+        { platform: "amazon", url: `https://www.amazon.com.br/s?k=${searchQuery}`, price: 0 },
+        { platform: "mercado-livre", url: `https://lista.mercadolivre.com.br/${mlQuery}`, price: 0 }
+      ];
+
       const prodRes = await sendRequest({
         action: "upsert_product",
         payload: {
@@ -164,7 +172,7 @@ async function runAutonomousPoster() {
           pros: prod.pros,
           cons: prod.cons,
           hero_image: finalImage,
-          affiliate_links: prod.affiliate_links
+          affiliate_links: dynamicLinks
         }
       });
       if (prodRes.success) {
