@@ -21,13 +21,6 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchDeals() {
-      const isConfigured = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-      
-      if (!isConfigured) {
-        setLoading(false);
-        return;
-      }
-      
       const { data, error } = await supabase
         .from('deals')
         .select('*')
