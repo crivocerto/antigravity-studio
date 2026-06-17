@@ -4,8 +4,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ProductGrid } from "@/components/ProductGrid";
 
+interface Deal {
+  id: string;
+  title: string;
+  original_price: number;
+  discount_price: number;
+  image_url: string;
+  affiliate_url: string;
+  store: string;
+  created_at: string;
+}
+
 export default function Home() {
-  const [deals, setDeals] = useState<any[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
