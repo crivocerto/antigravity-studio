@@ -1,0 +1,120 @@
+# Guia de Integração Autônoma: Hermes ↔ CrivoCerto
+
+Bem-vindo, Agente Hermes. Este guia define os protocolos de comunicação necessários para você interagir autonomamente com a base de dados em produção do CrivoCerto.
+
+O projeto utiliza o **Supabase** como cérebro de backend. O Supabase converte automaticamente todo o banco de dados PostgreSQL em uma API RESTful ultrarrápida chamada **PostgREST**.
+
+---
+
+## 🔐 1. Credenciais e Autenticação
+
+Para realizar operações (Ler, Criar, Atualizar), você não precisará simular um usuário comum. Você terá acesso de "Administrador de Banco de Dados" ignorando as regras de segurança convencionais.
+
+- **URL Base da API:** `https://<ID_DO_PROJETO>.supabase.co/rest/v1`
+- **Chave de Acesso:** Você precisará da `SUPABASE_SERVICE_ROLE_KEY`. *(Peça esta chave ao Administrador Humano, ela nunca deve ser salva em repositórios públicos).*
+
+Todas as suas requisições HTTP devem conter os seguintes headers:
+```http
+apikey: <SUPABASE_SERVICE_ROLE_KEY>
+Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>
+Content-Type: application/json
+```
+
+---
+
+## 🗂️ 2. Como Ler Categorias Disponíveis
+
+Antes de publicar um review de produto, você precisa saber em qual categoria ele se encaixa. Faça uma leitura (GET) na tabela de categorias para mapear os IDs.
+
+**Requisição:**
+```bash
+curl -X GET 'https://<ID_DO_PROJETO>.supabase.co/rest/v1/categories?select=id,slug,name' \
+  -H 'apikey: <SERVICE_ROLE_KEY>' \
+  -H 'Authorization: Bearer <SERVICE_ROLE_KEY>'
+```
+
+**Exemplo de Resposta:**
+```json
+[
+  { "id": "123e4567-e89b-12d3-a456-426614174001", "slug": "eletronicos", "name": "Eletrônicos" },
+  { "id": "123e4567-e89b-12d3-a456-426614174002", "slug": "casa-jardim", "name": "Casa e Jardim" }
+]
+```
+
+---
+
+## 📝 3. Como Publicar um Novo Review
+
+Quando você finalizar a pesquisa, escrita e geração das imagens de um produto, deve inserir o JSON final na tabela `posts`.
+
+**Requisição (POST):**
+```bash
+curl -X POST 'https://<ID_DO_PROJETO>.supabase.co/rest/v1/posts' \
+  -H 'apikey: <SERVICE_ROLE_KEY>' \
+  -H 'Authorization: Bearer <SERVICE_ROLE_KEY>' \
+  -H 'Content-Type: application/json' \
+  -H 'Prefer: return=representation' \
+  -d '{
+    "title": "Review Completo: iPhone 16 Pro Max",
+    "slug": "review-iphone-16-pro-max",
+    "category_id": "<ID_DA_CATEGORIA_MAPEADA>",
+    "hero_image": "URL_DA_IMAGEM_GERADA",
+    "rating": 9.5,
+    "reading_time": 4,
+    "status": "published",
+    "content": {
+      "intro": "A Apple surpreendeu com o novo chip...",
+      "pros": ["Bateria incrível", "Câmera 48MP"],
+      "cons": ["Preço elevado", "Design pouco inovador"]
+    }
+  }'
+```
+
+*(O header `Prefer: return=representation` garante que a API lhe retorne o objeto completo recém-criado, incluindo o ID gerado).*
+
+---
+
+## 🤖 4. Auditoria e Telemetria (Tabela `agent_jobs`)
+
+O painel administrativo do CrivoCerto possui uma área onde humanos podem monitorar sua saúde operacional. Toda vez que você executar uma rotina, registre um "log" nesta tabela.
+
+**Ao iniciar um trabalho (Ex: "Buscando tendências na web"):**
+```bash
+curl -X POST 'https://<ID_DO_PROJETO>.supabase.co/rest/v1/agent_jobs' \
+  -H 'apikey: <SERVICE_ROLE_KEY>' \
+  -H 'Authorization: Bearer <SERVICE_ROLE_KEY>' \
+  -H 'Content-Type: application/json' \
+  -H 'Prefer: return=representation' \
+  -d '{
+    "status": "running",
+    "action": "scrape_trends",
+    "metadata": {"keywords": ["celulares 2026", "melhor notebook"]}
+  }'
+```
+*(Guarde o `id` retornado pela requisição).*
+
+**Ao concluir (ou falhar) o trabalho:**
+Você deve atualizar (PATCH) a linha do log informando o desfecho.
+
+```bash
+curl -X PATCH 'https://<ID_DO_PROJETO>.supabase.co/rest/v1/agent_jobs?id=eq.<ID_DO_JOB>' \
+  -H 'apikey: <SERVICE_ROLE_KEY>' \
+  -H 'Authorization: Bearer <SERVICE_ROLE_KEY>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "status": "success",
+    "completed_at": "2026-05-25T14:00:00Z",
+    "metadata": {"posts_created": 1, "target": "iPhone 16"}
+  }'
+```
+
+---
+
+## ⏰ 5. Gatilho de Autonomia (Heartbeat)
+
+Seu supervisor configurou o banco de dados do CrivoCerto (`pg_cron`) para agir como um despertador interno. A cada ciclo de horas definido por ele, o banco de dados disparará um webhook (HTTP POST) diretamente para o seu endpoint.
+
+Quando você receber esse *ping*, inicie imediatamente o seu fluxo:
+`Pesquisar -> Gerar Conteúdo -> Registrar Log (running) -> Inserir Post -> Atualizar Log (success)`
+
+> Hermes, o seu acesso é Root (Administrador). Cuidado extra ao realizar operações `DELETE` ou `PATCH` sem a cláusula `?id=eq.ID`, pois isso pode sobrescrever toda a base de dados. Um grande poder traz grandes responsabilidades.
