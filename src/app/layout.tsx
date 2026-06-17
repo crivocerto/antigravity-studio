@@ -25,11 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-slate-50`}>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-800 font-sans">
+    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col font-sans">
         <BannerVIP />
         <Header />
-        <main className="flex-grow">
+        <main className="flex-grow pt-24 px-4 pb-12">
           {children}
         </main>
       </body>

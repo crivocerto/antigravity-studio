@@ -37,7 +37,7 @@ export function ProductCard({ title, originalPrice, discountPrice, imageUrl, aff
             <span className="text-sm font-bold mr-1">R$</span>{discountPrice.toFixed(2).replace('.', ',')}
           </span>
         </div>
-        <button className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+        <button className="mt-3 w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-bright)] text-white text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
           Ver na Loja <ExternalLink size={14} />
         </button>
       </div>
