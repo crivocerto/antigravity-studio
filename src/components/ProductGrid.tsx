@@ -20,11 +20,11 @@ export function ProductGrid({ products }: { products: Product[] }) {
       {products.map((product) => (
         <ProductCard
           key={product.id}
+          id={product.id}
           title={product.title}
           originalPrice={product.original_price}
           discountPrice={product.discount_price}
           imageUrl={product.image_url}
-          affiliateUrl={product.affiliate_url}
           store={product.store}
         />
       ))}

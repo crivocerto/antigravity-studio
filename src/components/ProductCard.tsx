@@ -1,20 +1,20 @@
 import { ExternalLink } from "lucide-react";
 
 interface ProductProps {
+  id: string;
   title: string;
   originalPrice: number;
   discountPrice: number;
   imageUrl: string;
-  affiliateUrl: string;
   store: string;
 }
 
-export function ProductCard({ title, originalPrice, discountPrice, imageUrl, affiliateUrl, store }: ProductProps) {
+export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl, store }: ProductProps) {
   const discountPercent = Math.round((1 - discountPrice / originalPrice) * 100);
 
   return (
     <a 
-      href={affiliateUrl} 
+      href={`/go/${id}`} 
       target="_blank" 
       rel="noopener noreferrer"
       className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col group relative"
