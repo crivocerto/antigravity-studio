@@ -6,15 +6,19 @@ interface ProductProps {
   originalPrice: number;
   discountPrice: number;
   imageUrl: string;
+  affiliateUrl: string;
   store: string;
 }
 
-export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl, store }: ProductProps) {
+export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl, affiliateUrl, store }: ProductProps) {
   const discountPercent = Math.round((1 - discountPrice / originalPrice) * 100);
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const redirectUrl = supabaseUrl ? `${supabaseUrl}/functions/v1/go?id=${id}` : affiliateUrl;
 
   return (
     <a 
-      href={`/go/${id}`} 
+      href={redirectUrl} 
       target="_blank" 
       rel="noopener noreferrer"
       className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col group relative"
