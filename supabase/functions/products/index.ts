@@ -57,15 +57,20 @@ serve(async (req) => {
 
     const { data, error } = await supabaseClient
       .from('deals')
-      .insert({
-        title: body.title,
-        original_price: body.original_price,
-        discount_price: body.discount_price,
-        affiliate_url: body.affiliate_url,
-        image_url: body.image_url,
-        store: body.store || 'Mercado Livre',
-        categoria: body.categoria || 'geral',
-      })
+      .upsert(
+        [
+          {
+            title: body.title,
+            original_price: body.original_price,
+            discount_price: body.discount_price,
+            image_url: body.image_url,
+            affiliate_url: body.affiliate_url,
+            store: body.store || 'Mercado Livre',
+            categoria: body.categoria || 'geral',
+          }
+        ],
+        { onConflict: 'affiliate_url' }
+      )
       .select()
       .single()
 

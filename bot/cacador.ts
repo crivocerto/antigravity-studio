@@ -85,7 +85,7 @@ async function gerarLinkAfiliado(page: Page, urlOriginal: string): Promise<strin
 const ALVOS_DE_BUSCA = [
     {
         categoria: "skincare",
-        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1246#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+        url: "https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/cuidados-pele/_Deal_ofertas-do-dia"
     },
     {
         categoria: "maquiagem",
@@ -93,7 +93,7 @@ const ALVOS_DE_BUSCA = [
     },
     {
         categoria: "cabelo_perfume",
-        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1248#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+        url: "https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/perfumes/_Deal_ofertas-do-dia"
     }
 ];
 
@@ -167,9 +167,20 @@ async function buscarOfertas() {
                     const imagem_url = await imagemElement?.getAttribute("src") || "";
 
                     if (titulo && link_original && preco_desconto > 0) {
+                        let precoOriginal = preco_desconto;
+                        try {
+                            const precoAntigoElement = await produto.$('.andes-money-amount--previous .andes-money-amount__fraction');
+                            if (precoAntigoElement) {
+                                const textoOriginal = await precoAntigoElement.innerText();
+                                precoOriginal = parseFloat(textoOriginal.replace(/\./g, "").replace(",", "."));
+                            }
+                        } catch (err) {
+                            // ignora e usa o mesmo preço (sem desconto visual)
+                        }
+
                         produtosExtraidos.push({
                             title: titulo,
-                            original_price: parseFloat((preco_desconto * 1.3).toFixed(2)),
+                            original_price: precoOriginal,
                             discount_price: preco_desconto,
                             image_url: imagem_url,
                             store: "Mercado Livre",

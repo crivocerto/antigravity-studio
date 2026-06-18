@@ -87,7 +87,7 @@ export function Header() {
 
             {/* Admin Access Panel */}
             <Link
-              href="#"
+              href="/admin"
               className="p-2 rounded-xl text-[var(--color-mute)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all duration-300"
               title="Painel Admin"
               aria-label="Painel Admin"
