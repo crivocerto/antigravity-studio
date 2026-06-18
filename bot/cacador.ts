@@ -20,6 +20,7 @@ interface Oferta {
     affiliate_url: string;
     categoria?: string;
     link_original?: string;
+    is_viral?: boolean;
 }
 
 const HISTORICO_PATH = 'historico.json';
@@ -126,7 +127,7 @@ const ALVOS_DE_BUSCA = [
     },
     {
         categoria: "maquiagem",
-        url: "https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/maquiagem/_Deal_ofertas-do-dia"
+        url: "https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/maquiagem/base-corretivo-blush_Deal_ofertas-do-dia"
     },
     {
         categoria: "cabelo_perfume",
@@ -136,6 +137,22 @@ const ALVOS_DE_BUSCA = [
 
 async function buscarOfertas() {
     console.log("🚀 Iniciando o Caçador de Ofertas com Nichos...");
+
+    try {
+        if (fs.existsSync('viral.json')) {
+            const virais = JSON.parse(fs.readFileSync('viral.json', 'utf8'));
+            for (let i = virais.length - 1; i >= 0; i--) { // Inverte loop para unshift ficar na ordem correta
+                const termo = virais[i];
+                const termoFormatado = termo.toLowerCase().replace(/ /g, '-');
+                ALVOS_DE_BUSCA.unshift({
+                    categoria: "🔥 Em Alta",
+                    url: `https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/${termoFormatado}_Deal_ofertas-do-dia`
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Erro ao ler viral.json", e);
+    }
 
     let cookies = [];
     try {
@@ -191,9 +208,10 @@ async function buscarOfertas() {
             }
 
             let validosNoNicho = 0;
+            const limiteDoNicho = alvo.categoria === "🔥 Em Alta" ? 1 : 4;
             
             for (const produto of elementos) {
-                if (validosNoNicho >= 4) break; // Garante 4 aprovados por nicho
+                if (validosNoNicho >= limiteDoNicho) break; // Garante o limite desejado
                 
                 try {
                     const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
@@ -248,7 +266,8 @@ async function buscarOfertas() {
                             store: "Mercado Livre",
                             affiliate_url: "", // Gerado na Fase 2
                             categoria: alvo.categoria,
-                            link_original: link_original
+                            link_original: link_original,
+                            is_viral: alvo.categoria === "🔥 Em Alta"
                         });
                         
                         validosNoNicho++;
