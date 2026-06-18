@@ -3,7 +3,6 @@ import type { Page } from 'playwright';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
-import { validarDescontoReal } from './price_validator.js';
 
 dotenv.config();
 
@@ -192,17 +191,21 @@ async function buscarOfertas() {
                             // ignora e usa o mesmo preço (sem desconto visual)
                         }
 
-                        // 1. Passa pelo "Filtro de Ouro" (Anti-Fraude API)
-                        const auditoriaDePreco = await validarDescontoReal(link_original);
-
-                        // 2. Se for falso desconto, pula pro próximo produto
-                        if (!auditoriaDePreco) {
-                            continue; 
+                        // Filtro Anti-Fraude Direto no HTML
+                        if (precoOriginal <= preco_desconto) {
+                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] não possui preço riscado (Falso Desconto).`);
+                            continue;
                         }
 
-                        // 3. Se for desconto real, usa os preços validados da API Oficial
-                        precoOriginal = auditoriaDePreco.preco_antigo;
-                        preco_desconto = auditoriaDePreco.preco_atual;
+                        const descontoPercentual = ((precoOriginal - preco_desconto) / precoOriginal) * 100;
+
+                        // Regra de Negócio: Desconto entre 15% e 40%
+                        if (descontoPercentual < 15 || descontoPercentual > 40) {
+                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] tem ${descontoPercentual.toFixed(1)}% OFF (fora da margem 15%-40%).`);
+                            continue;
+                        }
+
+                        console.log(`[Anti-Fraude] ✅ Aprovado: [${titulo}] com ${descontoPercentual.toFixed(1)}% OFF.`);
 
                         // Tentativa de gerar o link afiliado COM BACKOFF
                         let shortLink = "";
