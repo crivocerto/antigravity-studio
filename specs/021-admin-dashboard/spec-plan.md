@@ -1,0 +1,19 @@
+- [x] **1. Correção do Bot e Limpeza do DB**
+  - [x] Alterar `ALVOS_DE_BUSCA` no `bot/cacador.ts` (Maquiagem para a sub-URL real).
+  - [x] Acessar o Supabase via painel (ou script) para deletar os itens incorretos com categoria "maquiagem".
+- [x] **2. Auth Simples para Admin**
+  - [x] Adicionar `ADMIN_PASSWORD` no `.env.local` e `.env`.
+  - [x] Criar `/src/app/admin/login/page.tsx` (Formulário com senha).
+  - [x] Criar arquivo de Server Action `/src/actions/auth.ts` para setar cookie seguro.
+  - [x] Criar Middleware `/src/proxy.ts` protegendo a rota `/admin`.
+- [x] **3. A Tela do Dashboard Administrativo**
+  - [x] Criar a interface Layout principal em `/src/app/admin/page.tsx`.
+  - [x] **Data Fetching:** Modificar a Server Action ou Server Component para buscar métricas e tabela de deals.
+  - [x] **Widget "Top 5"**: Integrar a contagem de `cliques` da tabela com a visualização dos 5 mais clicados.
+- [x] **4. Operações CRUD no Frontend**
+  - [x] **Tabela:** Renderizar Imagem, Título, Preço e Categoria na lista de itens em `/admin`.
+  - [x] **Delete**: Server Action para `DELETE FROM deals WHERE id = X` ativada por botão na tabela.
+  - [x] **Update**: Server Action para editar preço.
+  - [x] **Injeção Manual**: Modal ou form simples que faz POST/Insert na tabela `deals` com link curto e detalhes manuais.
+- [x] **5. Analytics e Tracking**
+  - [x] Criar view ou stored procedure no Supabase para agregar dados, se necessário, ou usar `.select()` com contagem direto no cliente JS.

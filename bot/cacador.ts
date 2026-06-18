@@ -88,7 +88,7 @@ const ALVOS_DE_BUSCA = [
     },
     {
         categoria: "maquiagem",
-        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1247#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+        url: "https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/maquiagem/_Deal_ofertas-do-dia"
     },
     {
         categoria: "cabelo_perfume",
