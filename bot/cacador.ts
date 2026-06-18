@@ -88,11 +88,11 @@ async function gerarLinkAfiliado(page: Page, urlOriginal: string): Promise<strin
     while (attempt < MAX_RETRIES) {
         try {
             await page.goto('https://www.mercadolivre.com.br/afiliados/linkbuilder#hub', { waitUntil: 'networkidle' });
-            await page.waitForTimeout(4000); // Aguarda renderizar UI
+            await page.waitForTimeout(4000); 
 
             await page.fill('textarea', urlOriginal);
             await page.click('button:has-text("Gerar")', { timeout: 10000 });
-            await page.waitForTimeout(3000); // Aguarda gerar
+            await page.waitForTimeout(3000); 
             
             await page.click('button:has-text("Copiar")', { timeout: 10000 });
             
@@ -110,11 +110,11 @@ async function gerarLinkAfiliado(page: Page, urlOriginal: string): Promise<strin
             attempt++;
             console.error(`❌ Falha na tentativa ${attempt}: ${e instanceof Error ? e.message : 'Timeout'}`);
             if (attempt >= MAX_RETRIES) {
-                console.log("🛑 Desistindo após 3 tentativas. O Mercado Livre está muito lento.");
+                console.log("🛑 Desistindo após 3 tentativas.");
                 throw new Error("Falha definitiva ao gerar link afiliado.");
             }
             console.log(`🔄 Recarregando a página e tentando novamente... (Tentativa ${attempt + 1})`);
-            await page.waitForTimeout(2000 * attempt); // Delay progressivo
+            await page.waitForTimeout(2000 * attempt); 
         }
     }
     throw new Error("Falha inexperada");
@@ -135,20 +135,90 @@ const ALVOS_DE_BUSCA = [
     }
 ];
 
-async function buscarOfertas() {
-    console.log("🚀 Iniciando o Caçador de Ofertas com Nichos...");
+async function extrairProdutosDaPagina(page: Page, historico: Set<string>, alvoCategoria: string, isViral: boolean, limite: number): Promise<Oferta[]> {
+    const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
+    let elementos: any[] = [];
+    for (const seletor of seletoresPossiveis) {
+        elementos = await page.$$(seletor);
+        if (elementos.length > 0) break;
+    }
 
+    if (elementos.length === 0) {
+        console.log(`❌ Nenhuma oferta encontrada na tela.`);
+        return [];
+    }
+
+    const validados: Oferta[] = [];
+    
+    for (const produto of elementos) {
+        if (validados.length >= limite) break;
+        
+        try {
+            const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
+            const titulo = await tituloElement?.innerText() || "";
+
+            if (historico.has(titulo)) {
+                console.log(`⏭️ Ignorando [${titulo}]: Já foi caçado hoje.`);
+                continue;
+            }
+
+            const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
+            const preco_str = await precoElement?.innerText() || "0";
+            let preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
+
+            const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
+            const link_original = await linkElement?.getAttribute("href") || "";
+
+            const imagemElement = await produto.$("img.promotion-item__imgs, img.poly-component__picture");
+            const imagem_url = await imagemElement?.getAttribute("src") || "";
+
+            if (titulo && link_original && preco_desconto > 0) {
+                let precoOriginal = preco_desconto;
+                try {
+                    const precoAntigoElement = await produto.$('.andes-money-amount--previous .andes-money-amount__fraction');
+                    if (precoAntigoElement) {
+                        const textoOriginal = await precoAntigoElement.innerText();
+                        precoOriginal = parseFloat(textoOriginal.replace(/\./g, "").replace(",", "."));
+                    }
+                } catch (err) { }
+
+                if (precoOriginal <= preco_desconto) continue;
+
+                const descontoPercentual = ((precoOriginal - preco_desconto) / precoOriginal) * 100;
+
+                if (descontoPercentual < 15 || descontoPercentual > 40) continue;
+
+                console.log(`[Anti-Fraude] ✅ Aprovado p/ Carrinho: [${titulo}] com ${descontoPercentual.toFixed(1)}% OFF.`);
+
+                validados.push({
+                    title: titulo,
+                    original_price: precoOriginal,
+                    discount_price: preco_desconto,
+                    image_url: imagem_url,
+                    store: "Mercado Livre",
+                    affiliate_url: "",
+                    categoria: alvoCategoria,
+                    link_original: link_original,
+                    is_viral: isViral
+                });
+                
+                historico.add(titulo); 
+            }
+        } catch (e) {
+            // Ignora card defeituoso
+        }
+    }
+    return validados;
+}
+
+async function buscarOfertas() {
+    console.log("🚀 Iniciando o Caçador de Ofertas Híbrido (Trends + Estático)...");
+
+    let viraisPorNicho: Record<string, string[]> = {};
     try {
         if (fs.existsSync('viral.json')) {
-            const virais = JSON.parse(fs.readFileSync('viral.json', 'utf8'));
-            for (let i = virais.length - 1; i >= 0; i--) { // Inverte loop para unshift ficar na ordem correta
-                const termo = virais[i];
-                const termoFormatado = termo.toLowerCase().replace(/ /g, '-');
-                ALVOS_DE_BUSCA.unshift({
-                    categoria: "🔥 Em Alta",
-                    url: `https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/${termoFormatado}_Deal_ofertas-do-dia`
-                });
-            }
+            viraisPorNicho = JSON.parse(fs.readFileSync('viral.json', 'utf8'));
+            console.log("✅ Dados do Google Trends carregados com sucesso.");
         }
     } catch (e) {
         console.error("Erro ao ler viral.json", e);
@@ -156,8 +226,7 @@ async function buscarOfertas() {
 
     let cookies = [];
     try {
-        const cookiesRaw = fs.readFileSync('cookies.json', 'utf8');
-        cookies = JSON.parse(cookiesRaw);
+        cookies = JSON.parse(fs.readFileSync('cookies.json', 'utf8'));
     } catch (e) {
         console.error("❌ Erro ao ler cookies.json. O bot precisa da sessão do ML.");
         return;
@@ -169,7 +238,7 @@ async function buscarOfertas() {
     });
 
     const context = await browser.newContext({
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         viewport: { width: 1920, height: 1080 },
         permissions: ['clipboard-read', 'clipboard-write']
     });
@@ -181,7 +250,6 @@ async function buscarOfertas() {
 
     await context.addCookies(formattedCookies);
     
-    // FASE 1: CAÇA
     const pageCaca = await context.newPage();
     const carrinhoVirtual: Oferta[] = [];
     const historico = carregarHistorico();
@@ -191,110 +259,64 @@ async function buscarOfertas() {
         console.log(`📡 FASE 1: Caçando ofertas no nicho: ${alvo.categoria}`);
         console.log(`======================================\n`);
         
-        try {
-            await pageCaca.goto(alvo.url, { timeout: 60000 });
-            await pageCaca.waitForLoadState("networkidle");
+        let produtosNesteNicho = 0;
+        const virais = viraisPorNicho[alvo.categoria] || [];
 
-            const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
-            let elementos: any[] = [];
-            for (const seletor of seletoresPossiveis) {
-                elementos = await pageCaca.$$(seletor);
-                if (elementos.length > 0) break;
-            }
-
-            if (elementos.length === 0) {
-                console.log(`❌ Nenhuma oferta encontrada para ${alvo.categoria}. Captcha ou layout diferente?`);
-                continue;
-            }
-
-            let validosNoNicho = 0;
-            const limiteDoNicho = alvo.categoria === "🔥 Em Alta" ? 1 : 4;
-            
-            for (const produto of elementos) {
-                if (validosNoNicho >= limiteDoNicho) break; // Garante o limite desejado
+        // PLANO A: BUSCA VIRAL
+        if (virais.length > 0) {
+            for (const termo of virais) {
+                if (produtosNesteNicho >= 4) break;
+                
+                console.log(`\n🔥 Plano A (Viral): Buscando '${termo}'...`);
+                const termoFormatado = termo.toLowerCase().replace(/ /g, '-');
+                const urlViral = `https://lista.mercadolivre.com.br/beleza-cuidado-pessoal/${termoFormatado}_Deal_ofertas-do-dia`;
                 
                 try {
-                    const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
-                    const titulo = await tituloElement?.innerText() || "";
-
-                    if (historico.has(titulo)) {
-                        console.log(`⏭️ Ignorando [${titulo}]: Já foi caçado hoje (Ineditismo forçado).`);
-                        continue;
-                    }
-
-                    const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
-                    const preco_str = await precoElement?.innerText() || "0";
-                    let preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
-
-                    const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
-                    const link_original = await linkElement?.getAttribute("href") || "";
-
-                    const imagemElement = await produto.$("img.promotion-item__imgs, img.poly-component__picture");
-                    const imagem_url = await imagemElement?.getAttribute("src") || "";
-
-                    if (titulo && link_original && preco_desconto > 0) {
-                        let precoOriginal = preco_desconto;
-                        try {
-                            const precoAntigoElement = await produto.$('.andes-money-amount--previous .andes-money-amount__fraction');
-                            if (precoAntigoElement) {
-                                const textoOriginal = await precoAntigoElement.innerText();
-                                precoOriginal = parseFloat(textoOriginal.replace(/\./g, "").replace(",", "."));
-                            }
-                        } catch (err) { }
-
-                        // Filtro Anti-Fraude
-                        if (precoOriginal <= preco_desconto) {
-                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] não possui preço riscado.`);
-                            continue;
-                        }
-
-                        const descontoPercentual = ((precoOriginal - preco_desconto) / precoOriginal) * 100;
-
-                        // Regra de Negócio: 15% a 40%
-                        if (descontoPercentual < 15 || descontoPercentual > 40) {
-                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] tem ${descontoPercentual.toFixed(1)}% OFF (fora da margem).`);
-                            continue;
-                        }
-
-                        console.log(`[Anti-Fraude] ✅ Aprovado p/ Carrinho: [${titulo}] com ${descontoPercentual.toFixed(1)}% OFF.`);
-
-                        carrinhoVirtual.push({
-                            title: titulo,
-                            original_price: precoOriginal,
-                            discount_price: preco_desconto,
-                            image_url: imagem_url,
-                            store: "Mercado Livre",
-                            affiliate_url: "", // Gerado na Fase 2
-                            categoria: alvo.categoria,
-                            link_original: link_original,
-                            is_viral: alvo.categoria === "🔥 Em Alta"
-                        });
-                        
-                        validosNoNicho++;
-                        historico.add(titulo); // Já marca como lido para a memória local
+                    await pageCaca.goto(urlViral, { timeout: 60000 });
+                    await pageCaca.waitForLoadState("networkidle");
+                    
+                    // Queremos pescar 1 produto validado por cada termo viral
+                    const extraidos = await extrairProdutosDaPagina(pageCaca, historico, alvo.categoria, true, 1);
+                    if (extraidos.length > 0) {
+                        carrinhoVirtual.push(...extraidos);
+                        produtosNesteNicho += extraidos.length;
+                    } else {
+                        console.log(`Nenhuma oferta válida encontrada para o viral '${termo}'.`);
                     }
                 } catch (e) {
-                    console.log("Aviso: Falha ao extrair card de produto.");
+                    console.log(`Erro ao buscar o viral '${termo}'.`);
                 }
             }
-
-            console.log(`🛒 ${validosNoNicho} produtos colocados no carrinho em ${alvo.categoria}.`);
-
-        } catch (e) {
-            console.error(`Erro ao processar o nicho ${alvo.categoria}:`, e);
         }
+
+        // PLANO B: PREENCHIMENTO ESTÁTICO (Fallback)
+        const faltam = 4 - produtosNesteNicho;
+        if (faltam > 0) {
+            console.log(`\n🛒 Plano B (Estático): Faltam ${faltam} produtos para fechar a prateleira. Buscando ofertas gerais...`);
+            try {
+                await pageCaca.goto(alvo.url, { timeout: 60000 });
+                await pageCaca.waitForLoadState("networkidle");
+                
+                const extraidos = await extrairProdutosDaPagina(pageCaca, historico, alvo.categoria, false, faltam);
+                carrinhoVirtual.push(...extraidos);
+                produtosNesteNicho += extraidos.length;
+            } catch (e) {
+                console.log(`Erro ao buscar ofertas estáticas.`);
+            }
+        }
+
+        console.log(`\n✅ ${produtosNesteNicho} produtos colocados no carrinho em ${alvo.categoria}.`);
     }
     
-    await pageCaca.close(); // Fecha a aba de caça para não consumir RAM
+    await pageCaca.close();
 
-    // FASE 2: CONVERSÃO (O Linkbuilder)
     console.log(`\n======================================`);
     console.log(`⚙️ FASE 2: Convertendo os ${carrinhoVirtual.length} produtos do carrinho...`);
     console.log(`======================================\n`);
     
     const pageLink = await context.newPage();
-
     let sucessoTotal = 0;
+
     for (const item of carrinhoVirtual) {
         if (!item.link_original) continue;
 
@@ -307,16 +329,14 @@ async function buscarOfertas() {
             
         } catch (e) {
             console.log(`⚠️ Falhou a geração para [${item.title}]. Pulando.`);
-            historico.delete(item.title); // Remove do histórico para tentar amanhã se falhou
+            historico.delete(item.title);
         }
     }
     
     await pageLink.close();
-
-    // Salva o histórico em disco
     salvarHistorico(historico);
-
     await browser.close();
+    
     console.log(`\n🏁 Finalizado! ${sucessoTotal} novos produtos enviados para a vitrine hoje.`);
 }
 

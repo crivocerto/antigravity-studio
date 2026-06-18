@@ -2,42 +2,60 @@
 import googleTrends from 'google-trends-api';
 import fs from 'fs';
 
+const SEED_KEYWORDS = {
+    "skincare": ["skincare", "sérum", "hidratante", "protetor solar"],
+    "maquiagem": ["maquiagem", "base", "blush", "batom", "corretivo"],
+    "cabelo_perfume": ["perfume", "shampoo", "cabelo"]
+};
+
 async function fetchTrends() {
-    console.log("🔥 Buscando tendências virais de Maquiagem/Beleza no Google Trends (BR)...");
-    try {
-        const results = await googleTrends.relatedQueries({
-            keyword: 'maquiagem',
-            geo: 'BR'
-        });
+    console.log("🔥 Buscando tendências virais por nicho no Google Trends (BR)...");
+    
+    const viralData: Record<string, string[]> = {
+        "skincare": [],
+        "maquiagem": [],
+        "cabelo_perfume": []
+    };
 
-        const data = JSON.parse(results);
+    for (const [nicho, seeds] of Object.entries(SEED_KEYWORDS)) {
+        console.log(`\n🔍 Analisando nicho: ${nicho}...`);
         
-        // A API de relatedQueries retorna dois arrays no rankedList: [0] = Top, [1] = Rising (Breakout)
-        const risingQueries = data.default.rankedList[1].rankedKeyword || [];
-        
-        const topQueries: string[] = [];
-        
-        for (const item of risingQueries) {
-            // Pegar as palavras em ascensão (Breakout)
-            const query = item.query;
-            
-            // Filtrar termos muito genéricos ou inúteis (opcional)
-            if (query && !topQueries.includes(query)) {
-                topQueries.push(query);
+        for (const seed of seeds) {
+            try {
+                // Aguarda 1 seg para não tomar rate limit do Google
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const results = await googleTrends.relatedQueries({
+                    keyword: seed,
+                    geo: 'BR'
+                });
+
+                const data = JSON.parse(results);
+                
+                if (!data.default || !data.default.rankedList || data.default.rankedList.length < 2) continue;
+                
+                const risingQueries = data.default.rankedList[1].rankedKeyword || [];
+                
+                for (const item of risingQueries) {
+                    const query = item.query;
+                    if (query && !viralData[nicho].includes(query)) {
+                        viralData[nicho].push(query);
+                    }
+                    if (viralData[nicho].length >= 2) break; // Top 2 por nicho está ótimo
+                }
+
+                if (viralData[nicho].length >= 2) break; // Já achou os virais deste nicho
+
+            } catch (e) {
+                console.log(`⚠️ Falha ao buscar seed '${seed}': Rate limit ou erro na API.`);
             }
-            if (topQueries.length >= 3) break;
         }
-
-        console.log("📈 Top 3 Termos Virais em Ascensão:", topQueries);
         
-        fs.writeFileSync('viral.json', JSON.stringify(topQueries, null, 2), 'utf8');
-        console.log("✅ Termos salvos em viral.json");
-
-    } catch (e) {
-        console.error("❌ Erro ao buscar Google Trends:", e);
-        // Em caso de falha, criar um JSON vazio para não quebrar o bot
-        fs.writeFileSync('viral.json', JSON.stringify([]), 'utf8');
+        console.log(`📈 Virais em ${nicho}:`, viralData[nicho]);
     }
+
+    fs.writeFileSync('viral.json', JSON.stringify(viralData, null, 2), 'utf8');
+    console.log("\n✅ Termos categorizados salvos em viral.json");
 }
 
 fetchTrends();
