@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+debug_*.png
+debug_*.html
+debug_*.json
+debug_*.txt
