@@ -21,7 +21,8 @@ serve(async (req) => {
 
   try {
     // Validação da Chave da API do Bot
-    const authHeader = req.headers.get('authorization') || req.headers.get('x-api-key')
+    // Se o cliente enviar o Authorization com Anon key, procuramos a BOT_API_KEY no x-api-key
+    const botKeyHeader = req.headers.get('x-api-key') || req.headers.get('authorization')
     const expectedKey = Deno.env.get('BOT_API_KEY')
 
     if (!expectedKey) {
@@ -31,8 +32,8 @@ serve(async (req) => {
       })
     }
 
-    if (authHeader !== `Bearer ${expectedKey}` && authHeader !== expectedKey) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+    if (botKeyHeader !== `Bearer ${expectedKey}` && botKeyHeader !== expectedKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized", debug: "Missing or invalid bot key" }), { 
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -63,6 +64,7 @@ serve(async (req) => {
         affiliate_url: body.affiliate_url,
         image_url: body.image_url,
         store: body.store || 'Mercado Livre',
+        categoria: body.categoria || 'geral',
       })
       .select()
       .single()

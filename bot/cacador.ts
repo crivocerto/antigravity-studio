@@ -25,8 +25,10 @@ async function enviarParaSupabase(oferta: Oferta) {
         return;
     }
 
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
     const headers = {
-        "Authorization": `Bearer ${BOT_API_KEY}`,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "x-api-key": BOT_API_KEY,
         "Content-Type": "application/json"
     };
 
@@ -79,8 +81,23 @@ async function gerarLinkAfiliado(page: Page, urlOriginal: string): Promise<strin
     }
 }
 
+const ALVOS_DE_BUSCA = [
+    {
+        categoria: "skincare",
+        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1246#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+    },
+    {
+        categoria: "maquiagem",
+        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1247#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+    },
+    {
+        categoria: "cabelo_perfume",
+        url: "https://www.mercadolivre.com.br/ofertas?category=MLB1248#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal"
+    }
+];
+
 async function buscarOfertas() {
-    console.log("🚀 Iniciando o Caçador de Ofertas com Gerador de Afiliados...");
+    console.log("🚀 Iniciando o Caçador de Ofertas com Nichos...");
 
     let cookies = [];
     try {
@@ -110,73 +127,75 @@ async function buscarOfertas() {
     await context.addCookies(formattedCookies);
     const page = await context.newPage();
 
-    const urlAlvo = "https://www.mercadolivre.com.br/ofertas?category=MLB1246#origin=discount_hub&deal_print_id=2284b390-d0f9-11ee-b88a-3507c9b0e1b6&c_id=special-normal";
-    console.log(`📡 Acessando página de ofertas: ${urlAlvo}`);
-    
-    try {
-        await page.goto(urlAlvo, { timeout: 60000 });
-        await page.waitForLoadState("networkidle");
-
-        const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
-        let elementos = [];
-        for (const seletor of seletoresPossiveis) {
-            elementos = await page.$$(seletor);
-            if (elementos.length > 0) break;
-        }
-
-        if (elementos.length === 0) {
-            console.log("❌ Nenhuma oferta encontrada na página inicial. Captcha?");
-            await browser.close();
-            return;
-        }
-
-        const produtosExtraidos = [];
+    for (const alvo of ALVOS_DE_BUSCA) {
+        console.log(`\n======================================`);
+        console.log(`📡 Caçando ofertas no nicho: ${alvo.categoria}`);
+        console.log(`======================================\n`);
         
-        for (const produto of elementos.slice(0, 3)) { // Limita a 3 pra não demorar
-            try {
-                const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
-                const titulo = await tituloElement?.innerText() || "";
+        try {
+            await page.goto(alvo.url, { timeout: 60000 });
+            await page.waitForLoadState("networkidle");
 
-                const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
-                const preco_str = await precoElement?.innerText() || "0";
-                const preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
-
-                const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
-                const link_original = await linkElement?.getAttribute("href") || "";
-
-                const imagemElement = await produto.$("img.promotion-item__imgs, img.poly-component__picture");
-                const imagem_url = await imagemElement?.getAttribute("src") || "";
-
-                if (titulo && link_original && preco_desconto > 0) {
-                    produtosExtraidos.push({
-                        title: titulo,
-                        original_price: parseFloat((preco_desconto * 1.3).toFixed(2)),
-                        discount_price: preco_desconto,
-                        image_url: imagem_url,
-                        store: "Mercado Livre",
-                        affiliate_url: link_original // Será substituído
-                    });
-                }
-            } catch (e) {
-                console.log("Aviso: Falha ao extrair card de produto.", e);
+            const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
+            let elementos = [];
+            for (const seletor of seletoresPossiveis) {
+                elementos = await page.$$(seletor);
+                if (elementos.length > 0) break;
             }
+
+            if (elementos.length === 0) {
+                console.log(`❌ Nenhuma oferta encontrada para ${alvo.categoria}. Captcha ou layout diferente?`);
+                continue;
+            }
+
+            const produtosExtraidos = [];
+            
+            for (const produto of elementos.slice(0, 2)) { // Limita a 2 por nicho pra não demorar
+                try {
+                    const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
+                    const titulo = await tituloElement?.innerText() || "";
+
+                    const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
+                    const preco_str = await precoElement?.innerText() || "0";
+                    const preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
+
+                    const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
+                    const link_original = await linkElement?.getAttribute("href") || "";
+
+                    const imagemElement = await produto.$("img.promotion-item__imgs, img.poly-component__picture");
+                    const imagem_url = await imagemElement?.getAttribute("src") || "";
+
+                    if (titulo && link_original && preco_desconto > 0) {
+                        produtosExtraidos.push({
+                            title: titulo,
+                            original_price: parseFloat((preco_desconto * 1.3).toFixed(2)),
+                            discount_price: preco_desconto,
+                            image_url: imagem_url,
+                            store: "Mercado Livre",
+                            affiliate_url: link_original,
+                            categoria: alvo.categoria
+                        });
+                    }
+                } catch (e) {
+                    console.log("Aviso: Falha ao extrair card de produto.", e);
+                }
+            }
+
+            console.log(`🎯 ${produtosExtraidos.length} produtos extraídos em ${alvo.categoria}. Convertendo links...`);
+
+            for (const p of produtosExtraidos) {
+                const shortLink = await gerarLinkAfiliado(page, p.affiliate_url);
+                p.affiliate_url = shortLink;
+                await enviarParaSupabase(p as any);
+            }
+
+        } catch (e) {
+            console.error(`Erro ao processar o nicho ${alvo.categoria}:`, e);
         }
-
-        console.log(`🎯 ${produtosExtraidos.length} produtos extraídos. Convertendo links...`);
-
-        // Agora abre a página de afiliados para converter os links
-        for (const p of produtosExtraidos) {
-            const shortLink = await gerarLinkAfiliado(page, p.affiliate_url);
-            p.affiliate_url = shortLink;
-            await enviarParaSupabase(p);
-        }
-
-    } catch (e) {
-        console.error(`Erro crítico durante a execução:`, e);
-    } finally {
-        await browser.close();
-        console.log("🏁 Finalizado.");
     }
+
+    await browser.close();
+    console.log("\n🏁 Finalizado todos os nichos.");
 }
 
 buscarOfertas().catch(console.error);
