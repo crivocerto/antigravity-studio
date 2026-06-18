@@ -3,6 +3,7 @@ import type { Page } from 'playwright';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
+import { validarDescontoReal } from './price_validator.js';
 
 dotenv.config();
 
@@ -171,7 +172,7 @@ async function buscarOfertas() {
 
                     const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
                     const preco_str = await precoElement?.innerText() || "0";
-                    const preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
+                    let preco_desconto = parseFloat(preco_str.replace(/\./g, "").replace(",", "."));
 
                     const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
                     const link_original = await linkElement?.getAttribute("href") || "";
@@ -190,6 +191,18 @@ async function buscarOfertas() {
                         } catch (err) {
                             // ignora e usa o mesmo preço (sem desconto visual)
                         }
+
+                        // 1. Passa pelo "Filtro de Ouro" (Anti-Fraude API)
+                        const auditoriaDePreco = await validarDescontoReal(link_original);
+
+                        // 2. Se for falso desconto, pula pro próximo produto
+                        if (!auditoriaDePreco) {
+                            continue; 
+                        }
+
+                        // 3. Se for desconto real, usa os preços validados da API Oficial
+                        precoOriginal = auditoriaDePreco.preco_antigo;
+                        preco_desconto = auditoriaDePreco.preco_atual;
 
                         // Tentativa de gerar o link afiliado COM BACKOFF
                         let shortLink = "";
