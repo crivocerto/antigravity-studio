@@ -54,32 +54,42 @@ async function enviarParaSupabase(oferta: Oferta) {
 
 async function gerarLinkAfiliado(page: Page, urlOriginal: string): Promise<string> {
     console.log(`🔗 Gerando link afiliado para: ${urlOriginal.substring(0, 50)}...`);
-    try {
-        await page.goto('https://www.mercadolivre.com.br/afiliados/linkbuilder#hub', { waitUntil: 'networkidle' });
-        await page.waitForTimeout(4000); // Aguarda renderizar UI
+    const MAX_RETRIES = 3;
+    let attempt = 0;
 
-        await page.fill('textarea', urlOriginal);
-        await page.click('button:has-text("Gerar")');
-        await page.waitForTimeout(3000); // Aguarda gerar
-        
-        await page.click('button:has-text("Copiar")');
-        
-        const clipboardText = await page.evaluate(async () => {
-            return await navigator.clipboard.readText();
-        });
+    while (attempt < MAX_RETRIES) {
+        try {
+            await page.goto('https://www.mercadolivre.com.br/afiliados/linkbuilder#hub', { waitUntil: 'networkidle' });
+            await page.waitForTimeout(4000); // Aguarda renderizar UI
 
-        if (clipboardText.includes("meli.la") || clipboardText.includes("mercadolivre.com")) {
-            console.log(`✅ Link gerado: ${clipboardText}`);
-            return clipboardText.trim();
-        } else {
-            console.log("⚠️ Link inválido no clipboard:", clipboardText);
-            return urlOriginal;
+            await page.fill('textarea', urlOriginal);
+            await page.click('button:has-text("Gerar")', { timeout: 10000 });
+            await page.waitForTimeout(3000); // Aguarda gerar
+            
+            await page.click('button:has-text("Copiar")', { timeout: 10000 });
+            
+            const clipboardText = await page.evaluate(async () => {
+                return await navigator.clipboard.readText();
+            });
+
+            if (clipboardText.includes("meli.la") || clipboardText.includes("mercadolivre.com")) {
+                console.log(`✅ Link gerado (Tentativa ${attempt + 1}): ${clipboardText}`);
+                return clipboardText.trim();
+            } else {
+                throw new Error("Link no clipboard inválido: " + clipboardText);
+            }
+        } catch (e) {
+            attempt++;
+            console.error(`❌ Falha na tentativa ${attempt}: ${e instanceof Error ? e.message : 'Timeout'}`);
+            if (attempt >= MAX_RETRIES) {
+                console.log("🛑 Desistindo após 3 tentativas. O Mercado Livre está muito lento.");
+                throw new Error("Falha definitiva ao gerar link afiliado.");
+            }
+            console.log(`🔄 Recarregando a página e tentando novamente... (Tentativa ${attempt + 1})`);
+            await page.waitForTimeout(2000 * attempt); // Delay progressivo
         }
-
-    } catch (e) {
-        console.error("❌ Erro ao gerar link:", e);
-        return urlOriginal; // Fallback
     }
+    throw new Error("Falha inexperada");
 }
 
 const ALVOS_DE_BUSCA = [
@@ -138,7 +148,7 @@ async function buscarOfertas() {
             await page.waitForLoadState("networkidle");
 
             const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
-            let elementos = [];
+            let elementos: any[] = [];
             for (const seletor of seletoresPossiveis) {
                 elementos = await page.$$(seletor);
                 if (elementos.length > 0) break;
@@ -150,8 +160,11 @@ async function buscarOfertas() {
             }
 
             const produtosExtraidos = [];
+            let sucessosNoNicho = 0;
             
-            for (const produto of elementos.slice(0, 2)) { // Limita a 2 por nicho pra não demorar
+            for (const produto of elementos) {
+                if (sucessosNoNicho >= 4) break; // Limita a 4 por nicho pra vitrine ficar mais cheia
+                
                 try {
                     const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
                     const titulo = await tituloElement?.innerText() || "";
@@ -178,28 +191,35 @@ async function buscarOfertas() {
                             // ignora e usa o mesmo preço (sem desconto visual)
                         }
 
-                        produtosExtraidos.push({
+                        // Tentativa de gerar o link afiliado COM BACKOFF
+                        let shortLink = "";
+                        try {
+                            shortLink = await gerarLinkAfiliado(page, link_original);
+                        } catch (e) {
+                            console.log(`⚠️ Ignorando produto [${titulo}] pois falhou a geração do link afiliado.`);
+                            continue; // Pula para a próxima oferta se falhar
+                        }
+
+                        const ofertaFinal = {
                             title: titulo,
                             original_price: precoOriginal,
                             discount_price: preco_desconto,
                             image_url: imagem_url,
                             store: "Mercado Livre",
-                            affiliate_url: link_original,
+                            affiliate_url: shortLink,
                             categoria: alvo.categoria
-                        });
+                        };
+
+                        produtosExtraidos.push(ofertaFinal);
+                        await enviarParaSupabase(ofertaFinal as any);
+                        sucessosNoNicho++;
                     }
                 } catch (e) {
                     console.log("Aviso: Falha ao extrair card de produto.", e);
                 }
             }
 
-            console.log(`🎯 ${produtosExtraidos.length} produtos extraídos em ${alvo.categoria}. Convertendo links...`);
-
-            for (const p of produtosExtraidos) {
-                const shortLink = await gerarLinkAfiliado(page, p.affiliate_url);
-                p.affiliate_url = shortLink;
-                await enviarParaSupabase(p as any);
-            }
+            console.log(`🎯 ${sucessosNoNicho} produtos garantidos em ${alvo.categoria}.`);
 
         } catch (e) {
             console.error(`Erro ao processar o nicho ${alvo.categoria}:`, e);
