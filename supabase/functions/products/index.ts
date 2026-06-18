@@ -67,6 +67,7 @@ serve(async (req) => {
             affiliate_url: body.affiliate_url,
             store: body.store || 'Mercado Livre',
             categoria: body.categoria || 'geral',
+            created_at: new Date().toISOString()
           }
         ],
         { onConflict: 'affiliate_url' }

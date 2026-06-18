@@ -57,6 +57,17 @@ export default function Home() {
   return (
     <div className="w-full min-h-[50vh] flex flex-col gap-6">
       
+      {/* FOMO Expiration Banner */}
+      <div className="px-4 mt-2">
+        <div className="w-full bg-orange-50 border border-orange-200 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-3 text-center md:text-left shadow-sm animate-fade-in">
+          <span className="text-2xl animate-pulse">🚨</span>
+          <div>
+            <h3 className="text-orange-800 font-bold text-sm">ATENÇÃO: Ofertas em Tempo Real!</h3>
+            <p className="text-orange-700 text-xs mt-0.5">Nossos robôs atualizam os produtos diariamente. <b>Todos os links e descontos expiram em 24 horas!</b></p>
+          </div>
+        </div>
+      </div>
+
       {/* Scrollable Pills Menu */}
       <div className="w-full overflow-x-auto no-scrollbar py-2 px-4 border-b border-gray-100">
         <div className="flex gap-3">
