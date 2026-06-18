@@ -18,12 +18,36 @@ interface Oferta {
     image_url: string;
     store: string;
     affiliate_url: string;
+    categoria?: string;
+    link_original?: string;
+}
+
+const HISTORICO_PATH = 'historico.json';
+
+function carregarHistorico(): Set<string> {
+    try {
+        if (fs.existsSync(HISTORICO_PATH)) {
+            const data = fs.readFileSync(HISTORICO_PATH, 'utf8');
+            return new Set(JSON.parse(data));
+        }
+    } catch (e) {
+        console.error("Erro ao ler historico.json:", e);
+    }
+    return new Set();
+}
+
+function salvarHistorico(historico: Set<string>) {
+    try {
+        fs.writeFileSync(HISTORICO_PATH, JSON.stringify(Array.from(historico), null, 2), 'utf8');
+    } catch (e) {
+        console.error("Erro ao salvar historico.json:", e);
+    }
 }
 
 async function enviarParaSupabase(oferta: Oferta) {
     if (!BOT_API_KEY) {
         console.error("ERRO: BOT_API_KEY não encontrada no .env!");
-        return;
+        return false;
     }
 
     const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
@@ -43,12 +67,15 @@ async function enviarParaSupabase(oferta: Oferta) {
 
         if (response.status === 201) {
             console.log("✅ Sucesso ao salvar no banco!");
+            return true;
         } else {
             const text = await response.text();
             console.log(`❌ Falha ao salvar: ${response.status} - ${text}`);
+            return false;
         }
     } catch (e) {
         console.error("Erro na requisição pro banco:", e);
+        return false;
     }
 }
 
@@ -136,21 +163,25 @@ async function buscarOfertas() {
     }));
 
     await context.addCookies(formattedCookies);
-    const page = await context.newPage();
+    
+    // FASE 1: CAÇA
+    const pageCaca = await context.newPage();
+    const carrinhoVirtual: Oferta[] = [];
+    const historico = carregarHistorico();
 
     for (const alvo of ALVOS_DE_BUSCA) {
         console.log(`\n======================================`);
-        console.log(`📡 Caçando ofertas no nicho: ${alvo.categoria}`);
+        console.log(`📡 FASE 1: Caçando ofertas no nicho: ${alvo.categoria}`);
         console.log(`======================================\n`);
         
         try {
-            await page.goto(alvo.url, { timeout: 60000 });
-            await page.waitForLoadState("networkidle");
+            await pageCaca.goto(alvo.url, { timeout: 60000 });
+            await pageCaca.waitForLoadState("networkidle");
 
             const seletoresPossiveis = [".promotion-item", ".poly-card", ".ui-search-layout__item"];
             let elementos: any[] = [];
             for (const seletor of seletoresPossiveis) {
-                elementos = await page.$$(seletor);
+                elementos = await pageCaca.$$(seletor);
                 if (elementos.length > 0) break;
             }
 
@@ -159,15 +190,19 @@ async function buscarOfertas() {
                 continue;
             }
 
-            const produtosExtraidos = [];
-            let sucessosNoNicho = 0;
+            let validosNoNicho = 0;
             
             for (const produto of elementos) {
-                if (sucessosNoNicho >= 4) break; // Limita a 4 por nicho pra vitrine ficar mais cheia
+                if (validosNoNicho >= 4) break; // Garante 4 aprovados por nicho
                 
                 try {
                     const tituloElement = await produto.$(".promotion-item__title, .poly-component__title");
                     const titulo = await tituloElement?.innerText() || "";
+
+                    if (historico.has(titulo)) {
+                        console.log(`⏭️ Ignorando [${titulo}]: Já foi caçado hoje (Ineditismo forçado).`);
+                        continue;
+                    }
 
                     const precoElement = await produto.$(".promotion-item__price span.andes-money-amount__fraction, .poly-price__current span.andes-money-amount__fraction");
                     const preco_str = await precoElement?.innerText() || "0";
@@ -187,63 +222,83 @@ async function buscarOfertas() {
                                 const textoOriginal = await precoAntigoElement.innerText();
                                 precoOriginal = parseFloat(textoOriginal.replace(/\./g, "").replace(",", "."));
                             }
-                        } catch (err) {
-                            // ignora e usa o mesmo preço (sem desconto visual)
-                        }
+                        } catch (err) { }
 
-                        // Filtro Anti-Fraude Direto no HTML
+                        // Filtro Anti-Fraude
                         if (precoOriginal <= preco_desconto) {
-                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] não possui preço riscado (Falso Desconto).`);
+                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] não possui preço riscado.`);
                             continue;
                         }
 
                         const descontoPercentual = ((precoOriginal - preco_desconto) / precoOriginal) * 100;
 
-                        // Regra de Negócio: Desconto entre 15% e 40%
+                        // Regra de Negócio: 15% a 40%
                         if (descontoPercentual < 15 || descontoPercentual > 40) {
-                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] tem ${descontoPercentual.toFixed(1)}% OFF (fora da margem 15%-40%).`);
+                            console.warn(`[Anti-Fraude] ❌ Reprovado: [${titulo}] tem ${descontoPercentual.toFixed(1)}% OFF (fora da margem).`);
                             continue;
                         }
 
-                        console.log(`[Anti-Fraude] ✅ Aprovado: [${titulo}] com ${descontoPercentual.toFixed(1)}% OFF.`);
+                        console.log(`[Anti-Fraude] ✅ Aprovado p/ Carrinho: [${titulo}] com ${descontoPercentual.toFixed(1)}% OFF.`);
 
-                        // Tentativa de gerar o link afiliado COM BACKOFF
-                        let shortLink = "";
-                        try {
-                            shortLink = await gerarLinkAfiliado(page, link_original);
-                        } catch (e) {
-                            console.log(`⚠️ Ignorando produto [${titulo}] pois falhou a geração do link afiliado.`);
-                            continue; // Pula para a próxima oferta se falhar
-                        }
-
-                        const ofertaFinal = {
+                        carrinhoVirtual.push({
                             title: titulo,
                             original_price: precoOriginal,
                             discount_price: preco_desconto,
                             image_url: imagem_url,
                             store: "Mercado Livre",
-                            affiliate_url: shortLink,
-                            categoria: alvo.categoria
-                        };
-
-                        produtosExtraidos.push(ofertaFinal);
-                        await enviarParaSupabase(ofertaFinal as any);
-                        sucessosNoNicho++;
+                            affiliate_url: "", // Gerado na Fase 2
+                            categoria: alvo.categoria,
+                            link_original: link_original
+                        });
+                        
+                        validosNoNicho++;
+                        historico.add(titulo); // Já marca como lido para a memória local
                     }
                 } catch (e) {
-                    console.log("Aviso: Falha ao extrair card de produto.", e);
+                    console.log("Aviso: Falha ao extrair card de produto.");
                 }
             }
 
-            console.log(`🎯 ${sucessosNoNicho} produtos garantidos em ${alvo.categoria}.`);
+            console.log(`🛒 ${validosNoNicho} produtos colocados no carrinho em ${alvo.categoria}.`);
 
         } catch (e) {
             console.error(`Erro ao processar o nicho ${alvo.categoria}:`, e);
         }
     }
+    
+    await pageCaca.close(); // Fecha a aba de caça para não consumir RAM
+
+    // FASE 2: CONVERSÃO (O Linkbuilder)
+    console.log(`\n======================================`);
+    console.log(`⚙️ FASE 2: Convertendo os ${carrinhoVirtual.length} produtos do carrinho...`);
+    console.log(`======================================\n`);
+    
+    const pageLink = await context.newPage();
+
+    let sucessoTotal = 0;
+    for (const item of carrinhoVirtual) {
+        if (!item.link_original) continue;
+
+        try {
+            const shortLink = await gerarLinkAfiliado(pageLink, item.link_original);
+            item.affiliate_url = shortLink;
+            
+            const salvoOk = await enviarParaSupabase(item);
+            if (salvoOk) sucessoTotal++;
+            
+        } catch (e) {
+            console.log(`⚠️ Falhou a geração para [${item.title}]. Pulando.`);
+            historico.delete(item.title); // Remove do histórico para tentar amanhã se falhou
+        }
+    }
+    
+    await pageLink.close();
+
+    // Salva o histórico em disco
+    salvarHistorico(historico);
 
     await browser.close();
-    console.log("\n🏁 Finalizado todos os nichos.");
+    console.log(`\n🏁 Finalizado! ${sucessoTotal} novos produtos enviados para a vitrine hoje.`);
 }
 
 buscarOfertas().catch(console.error);
