@@ -1,4 +1,5 @@
-import { chromium, Page } from 'playwright-extra';
+import { chromium } from 'playwright-extra';
+import type { Page } from 'playwright';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
