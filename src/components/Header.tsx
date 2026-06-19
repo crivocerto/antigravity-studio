@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Search, Menu, X, LayoutDashboard } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import Image from "next/image";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,6 +14,12 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,9 +60,18 @@ export function Header() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <span className="text-xl font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
+            {mounted && (
+              <Image 
+                src={resolvedTheme === 'dark' ? '/logo-branca.png' : '/logo-preta.png'} 
+                alt="Logo CrivoCerto" 
+                width={32} 
+                height={32} 
+                className="rounded-full"
+              />
+            )}
+            <h1 className="text-xl font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
               Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>
-            </span>
+            </h1>
           </Link>
 
           {/* Nav Desktop - Primary Navigation Only */}
@@ -78,7 +96,7 @@ export function Header() {
               className={`p-2 rounded-xl transition-all duration-300 ${
                 searchOpen
                   ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60 dark:hover:bg-zinc-800"
               }`}
               aria-label="Buscar"
             >
@@ -94,6 +112,9 @@ export function Header() {
             >
               <LayoutDashboard size={18} />
             </Link>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Mobile Menu Toggle */}
             <button

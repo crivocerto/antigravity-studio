@@ -1,22 +1,36 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: #0d9a6e;
-  --color-primary-bright: #10b981;
-  --color-primary-deep: #065f46;
+  --color-primary: #3b82f6;
+  --color-primary-bright: #60a5fa;
+  --color-primary-deep: #2563eb;
   --color-primary-fg: #ffffff;
-  --color-ink: #111318;
-  --color-body: #2d3039;
+  
+  --color-ink: var(--foreground);
+  --color-body: var(--foreground-muted);
   --color-mute: #6b7280;
   --color-stone: #9ca3af;
-  --color-surface: #f8f8fa;
-  --color-hairline: #e5e7eb;
+  --color-surface: var(--background-surface);
+  --color-hairline: var(--border-color);
 }
 
 @layer base {
   :root {
     --background: #ffffff;
     --foreground: #111318;
+    --foreground-muted: #2d3039;
+    --background-surface: #f8f8fa;
+    --border-color: #e5e7eb;
+  }
+
+  .dark {
+    --background: #0a0a0a;
+    --foreground: #f8f8fa;
+    --foreground-muted: #9ca3af;
+    --background-surface: #171717;
+    --border-color: #262626;
   }
 }
 
@@ -49,8 +63,8 @@ html {
 }
 
 body {
-  background-color: white !important;
-  color: var(--color-ink) !important;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
   font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -58,6 +72,6 @@ body {
 }
 
 ::selection {
-  background-color: #10b98133;
-  color: #065f46;
+  background-color: #3b82f633;
+  color: #1d4ed8;
 }
