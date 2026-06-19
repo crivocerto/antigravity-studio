@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Search, Menu, X, LayoutDashboard } from "lucide-react";
+import { Search, Menu, X, LayoutDashboard, MessageCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -45,16 +45,11 @@ export function Header() {
 
   return (
     <header
-      className={`fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl rounded-3xl border border-white/20 transition-all duration-300 ease-out backdrop-blur-xl ${
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ease-out backdrop-blur-md ${
         scrolled
-          ? "top-3 bg-white/70 scale-95 shadow-lg border-white/10"
-          : "top-14 bg-white/90 scale-100"
+          ? "bg-white/80 dark:bg-black/80 border-white/10 shadow-sm"
+          : "bg-white/90 dark:bg-black/90 border-transparent"
       }`}
-      style={{
-        boxShadow: scrolled
-          ? "0 4px 20px -2px rgba(13, 154, 110, 0.15), 0 2px 8px -1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
-          : "0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5)",
-      }}
     >
       <div className="px-6 py-3">
         <div className="flex items-center justify-between gap-4">
@@ -112,6 +107,18 @@ export function Header() {
             >
               <LayoutDashboard size={18} />
             </Link>
+
+            {/* Grupo VIP WhatsApp */}
+            <a
+              href="https://wa.me/5511999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300"
+              title="Entrar no Grupo VIP"
+            >
+              <MessageCircle size={18} />
+              <span className="hidden md:inline text-xs font-semibold">Grupo VIP</span>
+            </a>
 
             {/* Theme Toggle */}
             <ThemeToggle />

@@ -29,6 +29,10 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {/* Barra de Urgência - Topo Absoluto */}
+          <div className="bg-blue-600 text-white text-xs py-1 text-center w-full">
+            ⚡ Ofertas relâmpago validadas hoje. Estoques sujeitos a alteração no Mercado Livre.
+          </div>
           <BannerVIP />
           <Header />
           <main className="flex-grow pt-24 px-4 pb-12">
