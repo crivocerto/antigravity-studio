@@ -169,6 +169,11 @@ async function extrairProdutosDaPagina(page: Page, historico: Set<string>, alvoC
             const linkElement = await produto.$("a.promotion-item__link-container, a.poly-component__title");
             const link_original = await linkElement?.getAttribute("href") || "";
 
+            if (link_original.includes('click1.mercadolivre') || link_original.includes('is_advertising=true')) {
+                console.log(`🛡️ [AdBlock] Anúncio Patrocinado ignorado: ${titulo}`);
+                continue;
+            }
+
             const imagemElement = await produto.$("img.promotion-item__imgs, img.poly-component__picture");
             const imagem_url = await imagemElement?.getAttribute("src") || "";
 

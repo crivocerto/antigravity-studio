@@ -14,6 +14,7 @@ interface Deal {
   store: string;
   categoria: string;
   created_at: string;
+  is_viral?: boolean;
 }
 
 const CATEGORIES = [

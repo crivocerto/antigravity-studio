@@ -8,6 +8,7 @@ interface Product {
   image_url: string;
   affiliate_url: string;
   store: string;
+  is_viral?: boolean;
 }
 
 export function ProductGrid({ products }: { products: Product[] }) {
@@ -27,6 +28,7 @@ export function ProductGrid({ products }: { products: Product[] }) {
           imageUrl={product.image_url}
           affiliateUrl={product.affiliate_url}
           store={product.store}
+          isViral={product.is_viral}
         />
       ))}
     </div>

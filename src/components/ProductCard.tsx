@@ -8,9 +8,10 @@ interface ProductProps {
   imageUrl: string;
   affiliateUrl: string;
   store: string;
+  isViral?: boolean;
 }
 
-export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl, affiliateUrl, store }: ProductProps) {
+export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl, affiliateUrl, store, isViral }: ProductProps) {
   const discountPercent = Math.round((1 - discountPrice / originalPrice) * 100);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -21,11 +22,16 @@ export function ProductCard({ id, title, originalPrice, discountPrice, imageUrl,
       href={redirectUrl} 
       target="_blank" 
       rel="noopener noreferrer"
-      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col group relative"
+      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 flex flex-col group relative"
     >
       <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10 shadow-sm">
         -{discountPercent}%
       </div>
+      {isViral && (
+        <div className="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] uppercase font-black tracking-wider px-2 py-1 rounded-md z-10 shadow-[0_0_10px_rgba(249,115,22,0.4)] animate-pulse flex items-center gap-1 border border-white/20 backdrop-blur-sm">
+          🔥 Em Alta
+        </div>
+      )}
       <div className="relative aspect-square bg-white p-2 flex items-center justify-center overflow-hidden border-b border-slate-50">
         <img 
           src={imageUrl} 
