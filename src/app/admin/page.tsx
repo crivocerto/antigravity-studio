@@ -9,15 +9,29 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
 );
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboard() {
   // Busca o Top 5 via RPC
-  const { data: topDeals } = await supabase.rpc('get_top_deals');
+  let topDeals = [];
+  try {
+    const { data } = await supabase.rpc('get_top_deals');
+    if (data) topDeals = data;
+  } catch (e) {
+    console.error("Erro ao buscar top deals", e);
+  }
   
   // Busca todas as ofertas
-  const { data: deals } = await supabase
-    .from('deals')
-    .select('*')
-    .order('created_at', { ascending: false });
+  let deals: any[] = [];
+  try {
+    const { data } = await supabase
+      .from('deals')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) deals = data;
+  } catch (e) {
+    console.error("Erro ao buscar deals", e);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 font-sans">
