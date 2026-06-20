@@ -4,6 +4,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export async function loginAction(formData: FormData) {
+  if (!formData || typeof formData.get !== 'function') {
+    return { error: 'Requisição inválida!' };
+  }
+
   const password = formData.get('password') as string;
   const adminPassword = process.env.ADMIN_PASSWORD;
 

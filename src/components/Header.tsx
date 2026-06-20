@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Search, Menu, X, LayoutDashboard, MessageCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import Image from "next/image";
-import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,12 +11,6 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,43 +36,25 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ease-out backdrop-blur-md ${
+      className={`fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl rounded-3xl border border-white/20 transition-all duration-300 ease-out backdrop-blur-xl ${
         scrolled
-          ? "bg-white/80 dark:bg-black/80 border-white/10 shadow-sm"
-          : "bg-white/90 dark:bg-black/90 border-transparent"
+          ? "top-3 bg-white/70 scale-95 shadow-lg border-white/10"
+          : "top-14 bg-white/90 scale-100"
       }`}
+      style={{
+        boxShadow: scrolled
+          ? "0 4px 20px -2px rgba(13, 154, 110, 0.15), 0 2px 8px -1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
+          : "0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5)",
+      }}
     >
       <div className="px-6 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            {mounted && (
-              <Image 
-                src={resolvedTheme === 'dark' ? '/logo-branca.png' : '/logo-preta.png'} 
-                alt="Logo CrivoCerto" 
-                width={32} 
-                height={32} 
-                className="rounded-full"
-              />
-            )}
-            <h1 className="text-xl font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
+            <span className="text-xl font-extrabold text-[var(--color-ink)] tracking-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
               Crivo<span className="text-[var(--color-primary)] font-black">Certo</span>
-            </h1>
+            </span>
           </Link>
-
-          {/* Nav Desktop - Primary Navigation Only */}
-          <nav className="hidden md:flex items-center gap-2 bg-gray-100/50 p-1 rounded-full border border-gray-200/20">
-            <Link
-              href="/"
-              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
-                isActive("/")
-                  ? "bg-white text-[var(--color-primary)] shadow-sm"
-                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-white/50"
-              }`}
-            >
-              Início
-            </Link>
-          </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
@@ -91,7 +64,7 @@ export function Header() {
               className={`p-2 rounded-xl transition-all duration-300 ${
                 searchOpen
                   ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60 dark:hover:bg-zinc-800"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)] hover:bg-gray-100/60"
               }`}
               aria-label="Buscar"
             >
@@ -113,15 +86,12 @@ export function Header() {
               href="https://wa.me/5511999999999"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-green-600 hover:bg-green-50 transition-all duration-300"
               title="Entrar no Grupo VIP"
             >
               <MessageCircle size={18} />
               <span className="hidden md:inline text-xs font-semibold">Grupo VIP</span>
             </a>
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
 
             {/* Mobile Menu Toggle */}
             <button
@@ -154,22 +124,18 @@ export function Header() {
           </div>
         )}
 
-        {/* Mobile menu */}
+        {/* Mobile menu (Removido menu de links, focado apenas em ações) */}
         {menuOpen && (
-          <div className="md:hidden mt-3 pt-3 border-t border-gray-100 animate-slide-up">
-            <nav className="flex flex-col gap-1.5 pb-2">
-              <Link
-                href="/"
-                onClick={() => setMenuOpen(false)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide uppercase transition-colors ${
-                  isActive("/")
-                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                    : "text-[var(--color-body)] hover:bg-gray-100/60"
-                }`}
-              >
-                Início
-              </Link>
-            </nav>
+          <div className="md:hidden mt-3 pt-3 border-t border-gray-100 animate-slide-up flex flex-col gap-2">
+            <a
+              href="https://wa.me/5511999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors"
+            >
+              <MessageCircle size={18} />
+              Entrar no Grupo VIP
+            </a>
           </div>
         )}
       </div>
