@@ -1,11 +1,11 @@
 {
-  "skincare": [
-    "kit skincare",
-    "produtos skincare"
-  ],
+  "skincare": [],
   "maquiagem": [
-    "corretivo ruby rose",
-    "natura corretivo"
+    "maleta de maquiagem",
+    "kit de maquiagem"
   ],
-  "cabelo_perfume": []
+  "cabelo_perfume": [
+    "eudora",
+    "perfume million"
+  ]
 }
