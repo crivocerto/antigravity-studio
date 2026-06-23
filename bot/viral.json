@@ -1,8 +1,11 @@
 {
-  "skincare": [],
+  "skincare": [
+    "hidratante natura",
+    "cerave"
+  ],
   "maquiagem": [
-    "maleta de maquiagem",
-    "kit de maquiagem"
+    "blush mac",
+    "mac"
   ],
   "cabelo_perfume": [
     "eudora",
