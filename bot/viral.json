@@ -1,14 +1,8 @@
 {
   "skincare": [
-    "kit skincare",
-    "produtos skincare"
+    "cerave hidratante",
+    "cerave"
   ],
-  "maquiagem": [
-    "maquiagem simples",
-    "kit de maquiagem"
-  ],
-  "cabelo_perfume": [
-    "perfume eudora",
-    "eudora"
-  ]
+  "maquiagem": [],
+  "cabelo_perfume": []
 }
