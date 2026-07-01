@@ -1,11 +1,14 @@
 {
   "skincare": [
-    "cerave",
-    "hidratante cerave"
+    "skincare produtos",
+    "kit skincare"
   ],
   "maquiagem": [
-    "base mary kay",
-    "mary kay"
+    "maquiagem simples",
+    "maleta de maquiagem"
   ],
-  "cabelo_perfume": []
+  "cabelo_perfume": [
+    "eudora perfume",
+    "million perfume"
+  ]
 }
