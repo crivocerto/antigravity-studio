@@ -1,8 +1,11 @@
 {
   "skincare": [
-    "cerave hidratante",
-    "cerave"
+    "cerave",
+    "hidratante cerave"
   ],
-  "maquiagem": [],
+  "maquiagem": [
+    "base mary kay",
+    "mary kay"
+  ],
   "cabelo_perfume": []
 }
