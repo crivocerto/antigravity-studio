@@ -1,11 +1,14 @@
 {
   "skincare": [
-    "sérum facial",
-    "sérum clareador"
+    "skincare produtos",
+    "kit skincare"
   ],
   "maquiagem": [
-    "mary kay base",
-    "base boca rosa"
+    "maquiagem simples",
+    "maleta de maquiagem"
   ],
-  "cabelo_perfume": []
+  "cabelo_perfume": [
+    "eudora perfume",
+    "million perfume"
+  ]
 }
