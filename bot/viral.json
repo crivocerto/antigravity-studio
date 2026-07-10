@@ -1,14 +1,14 @@
 {
   "skincare": [
-    "produtos skincare",
-    "creamy skincare"
+    "kit skincare",
+    "creamy"
   ],
   "maquiagem": [
-    "pinceis de maquiagem",
-    "pincel de maquiagem"
+    "maleta de maquiagem",
+    "pinceis de maquiagem"
   ],
   "cabelo_perfume": [
-    "eudora",
-    "perfume million"
+    "perfume da boticário",
+    "million perfume"
   ]
 }
