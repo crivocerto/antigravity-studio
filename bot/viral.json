@@ -1,14 +1,14 @@
 {
   "skincare": [
-    "kit skincare",
-    "creamy"
+    "produtos skincare",
+    "kit skincare"
   ],
   "maquiagem": [
-    "mac",
-    "passando blush"
+    "maquiagem simples",
+    "maleta de maquiagem"
   ],
   "cabelo_perfume": [
-    "eudora",
+    "eudora perfume",
     "perfume lily"
   ]
 }
